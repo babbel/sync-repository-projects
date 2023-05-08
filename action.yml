@@ -1,0 +1,13 @@
+name: 'sync-repository-projects'
+description: 'Sync projects V2 linked to a repository idempotently'
+inputs:
+  projects:
+    description: 'List of projets names to be synced, separated by space'
+    required: true
+    default: ''
+outputs:
+  projects:
+    description: 'List of names of the projects existing in GitHub after syncing'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'

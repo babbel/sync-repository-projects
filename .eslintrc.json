@@ -4,6 +4,7 @@
     "es2021": true
   },
   "extends": "airbnb-base",
+  "ignorePatterns": ["/dist/*.js"],
   "rules": {
     "no-restricted-syntax": "off"
   },

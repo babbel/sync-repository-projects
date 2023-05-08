@@ -6,7 +6,16 @@ class RepositoryProjectsManager {
     this.clientMutationId = `sync-repository-projects-${owner}-${repository}`;
   }
 
-  async init() {
+  async sync(titles) {
+    await this.#init();
+
+    await this.#createMissingProjectsFrom(titles);
+    await this.#deleteProjectsNotIn(titles);
+
+    await this.#fetchRepositoryAndProjects(); // refresh local
+  }
+
+  async #init() {
     // the GitHub Action's event can contain the "old" GraphQL node id.
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
@@ -26,13 +35,6 @@ class RepositoryProjectsManager {
     this.organization = organization;
 
     await this.#fetchRepositoryAndProjects();
-  }
-
-  async sync(titles) {
-    await this.#createMissingProjectsFrom(titles);
-    await this.#deleteProjectsNotIn(titles);
-
-    await this.#fetchRepositoryAndProjects(); // refresh local
   }
 
   async #fetchRepositoryAndProjects() {

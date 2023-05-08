@@ -38,7 +38,6 @@ try {
     octokit,
   });
 
-  await rpm.init();
   await rpm.sync(projects);
 
   core.setOutput('projects', rpm.projects.map((p) => p.title));

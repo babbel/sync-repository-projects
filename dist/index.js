@@ -10882,11 +10882,12 @@ class RepositoryProjectsManager {
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
     const { organization } = await this.octokit.graphql(
-      `query {
-         organization(login: "${this.owner}") {
-           id
-           name
-         }
+      `
+      query {
+        organization(login: "${this.owner}") {
+          id
+          name
+        }
       }`,
       {
         headers: {
@@ -10900,24 +10901,23 @@ class RepositoryProjectsManager {
   }
 
   async #fetchRepositoryAndProjects() {
-    const response = await this.octokit.graphql.paginate(
-      `query paginate($cursor: String) {
-         repository(owner: "${this.owner}", name: "${this.repositoryName}") {
-           name
-           id
-           projectsV2(first: 10, after: $cursor) {
-             nodes {
-               id
-               title
-             }
-             pageInfo {
-               hasNextPage
-               endCursor
-             }
-           }
-         }
-      }`,
-    );
+    const response = await this.octokit.graphql.paginate(`
+      query paginate($cursor: String) {
+        repository(owner: "${this.owner}", name: "${this.repositoryName}") {
+          name
+          id
+          projectsV2(first: 10, after: $cursor) {
+            nodes {
+              id
+              title
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      }`);
     this.repository = response.repository;
     this.projects = response.repository.projectsV2.nodes;
   }
@@ -10940,40 +10940,38 @@ class RepositoryProjectsManager {
   }
 
   async #createProject(title) {
-    const { createProjectV2: { projectV2: { id } } } = await this.octokit.graphql(
-      `mutation{
-         createProjectV2(
-           input: {
-             ownerId: "${this.organization.id}",
-             title: "${title}",
-             repositoryId: "${this.repository.id}",
-           }
-         ){
-           projectV2 {
-             id
-           }
-         }
-       }`,
-    );
+    const { createProjectV2: { projectV2: { id } } } = await this.octokit.graphql(`
+      mutation{
+        createProjectV2(
+          input: {
+            ownerId: "${this.organization.id}",
+            title: "${title}",
+            repositoryId: "${this.repository.id}",
+          }
+        ){
+          projectV2 {
+            id
+          }
+        }
+      }`);
 
     return id;
   }
 
   async #deleteProject(project) {
-    const { projectId: id } = await this.octokit.graphql(
-      `mutation{
-       deleteProjectV2(
-         input: {
-           clientMutationId: "${this.clientMutationId}"
-           projectId: "${project.id}",
-         }
-       ){
-         projectV2 {
-           id
-         }
-       }
-    }`,
-    );
+    const { projectId: id } = await this.octokit.graphql(`
+      mutation{
+        deleteProjectV2(
+          input: {
+            clientMutationId: "${this.clientMutationId}"
+            projectId: "${project.id}",
+          }
+        ){
+          projectV2 {
+            id
+          }
+        }
+      }`);
 
     return id;
   }

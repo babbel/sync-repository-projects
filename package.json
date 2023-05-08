@@ -1,0 +1,31 @@
+{
+  "name": "sync-repository-projects",
+  "version": "0.0.1",
+  "description": "Github Action synchronizing GitHub projects required for a repository",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "echo no tests defined"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/babbel/sync-repository-projects.git"
+  },
+  "keywords": [
+    "node.js",
+    "github",
+    "actions",
+    "projects"
+  ],
+  "devDependencies": {
+    "eslint": "*",
+    "eslint-config-airbnb-base": "*",
+    "eslint-plugin-import": "*"
+  },
+  "author": "Babbel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/babbel/sync-repository-projects/issues"
+  },
+  "homepage": "https://github.com/babbel/sync-repository-projects#readme"
+}

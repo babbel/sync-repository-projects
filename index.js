@@ -40,7 +40,7 @@ try {
 
   await rpm.sync(projects);
 
-  core.setOutput('projects', rpm.projects.map((p) => p.title));
+  core.setOutput('projects', rpm.projects.map((p) => p.title).join(' '));
 } catch (error) {
   core.setFailed(error.message);
 }

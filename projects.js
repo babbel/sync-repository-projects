@@ -3,6 +3,10 @@ class RepositoryProjectsManager {
     this.owner = owner;
     this.repositoryName = repository;
     this.octokit = octokit;
+
+    // the value of this string is not documented other than:
+    // "A unique identifier for the client performing the mutation."
+    // https://docs.github.com/en/graphql/reference/mutations
     this.clientMutationId = `sync-repository-projects-${owner}-${repository}`;
   }
 

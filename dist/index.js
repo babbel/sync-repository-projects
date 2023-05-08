@@ -10840,7 +10840,7 @@ try {
 
   await rpm.sync(projects);
 
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('projects', rpm.projects.map((p) => p.title));
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('projects', rpm.projects.map((p) => p.title).join(' '));
 } catch (error) {
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error.message);
 }

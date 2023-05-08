@@ -7,7 +7,7 @@ inputs:
     default: ''
 outputs:
   projects:
-    description: 'List of names of the projects existing in GitHub after syncing'
+    description: 'List of names of the projects existing in GitHub after syncing, as space separated string'
 runs:
   using: 'node16'
   main: 'dist/index.js'

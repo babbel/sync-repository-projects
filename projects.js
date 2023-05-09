@@ -65,18 +65,18 @@ class RepositoryProjectsManager {
   }
 
   async #createMissingProjectsFrom(titles) {
-    const missing = titles.filter((title) => !this.projects.map((p) => p.title).includes(title));
+    const titlesToCreate = titles.filter((title) => !this.projects.map((p) => p.title).includes(title));
 
-    for await (const title of missing) {
+    for await (const title of titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
       await this.#createProject(title);
     }
   }
 
   async #deleteProjectsNotIn(titles) {
-    const unspecified = this.projects.filter((p) => !titles.includes(p.title));
+    const projectsToDelete = this.projects.filter((p) => !titles.includes(p.title));
 
-    for await (const project of unspecified) {
+    for await (const project of projectsToDelete) {
       await this.#deleteProject(project); // more than 5 breaks API endpoint
     }
   }

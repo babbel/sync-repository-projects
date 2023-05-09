@@ -43,12 +43,14 @@ class RepositoryProjectsManager {
   }
 
   async #fetchRepositoryAndProjects() {
+    // max limit for `first` is 100
+    // https://docs.github.com/en/graphql/overview/resource-limitations
     const response = await this.octokit.graphql.paginate(`
       query paginate($cursor: String) {
         repository(owner: "${this.owner}", name: "${this.repositoryName}") {
           name
           id
-          projectsV2(first: 10, after: $cursor) {
+          projectsV2(first: 100, after: $cursor) {
             nodes {
               id
               title

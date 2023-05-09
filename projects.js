@@ -14,7 +14,7 @@ class RepositoryProjectsManager {
     await this.#init();
 
     await this.#createMissingProjectsFrom(titles);
-    await this.#deleteProjectsNotIn(titles);
+    await this.#deleteProjectsNotGivenBy(titles);
 
     await this.#fetchRepositoryAndProjects(); // refresh local
   }
@@ -73,7 +73,7 @@ class RepositoryProjectsManager {
     }
   }
 
-  async #deleteProjectsNotIn(titles) {
+  async #deleteProjectsNotGivenBy(titles) {
     const projectsToDelete = this.projects.filter((p) => !titles.includes(p.title));
 
     for await (const project of projectsToDelete) {

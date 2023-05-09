@@ -67,7 +67,8 @@ class RepositoryProjectsManager {
   }
 
   async #createMissingProjectsFrom(titles) {
-    const titlesToCreate = titles.filter((title) => !this.projects.map((p) => p.title).includes(title));
+    const titlesToCreate = titles.filter((title) => !this.projects.map((p) => p.title)
+      .includes(title));
 
     for await (const title of titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint

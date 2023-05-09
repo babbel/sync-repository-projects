@@ -10794,11 +10794,9 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("zlib");
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2186);
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5438);
-/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(6762);
-/* harmony import */ var _octokit_auth_token__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(334);
-/* harmony import */ var _octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(5883);
-/* harmony import */ var _projects_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(2621);
-
+/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(6762);
+/* harmony import */ var _octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(5883);
+/* harmony import */ var _projects_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(2621);
 
 
 
@@ -10807,21 +10805,16 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
  // eslint-disable-line import/extensions
 
-// assamble auth octokit client
-// expecting token with tokenType "installation"
-const authentication = (0,_octokit_auth_token__WEBPACK_IMPORTED_MODULE_2__.createTokenAuth)(process.env.GITHUB_TOKEN);
-const auth = await authentication();
-
-const GraphQlOctokit = _octokit_core__WEBPACK_IMPORTED_MODULE_3__/* .Octokit.plugin */ .v.plugin(_octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_4__/* .paginateGraphql */ .A);
+const GraphQlOctokit = _octokit_core__WEBPACK_IMPORTED_MODULE_2__/* .Octokit.plugin */ .v.plugin(_octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_3__/* .paginateGraphql */ .A);
 
 // https://github.com/octokit/authentication-strategies.js
 // example: https://github.com/octokit/graphql.js/issues/61#issuecomment-542399763
 // for token type installation, pass only the token
-const octokit = new GraphQlOctokit({ auth: auth.token });
+const octokit = new GraphQlOctokit({ auth: process.env.GITHUB_TOKEN });
 
 try {
-  const projectsInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('projects');
-  const projects = projectsInput.split(/\s+/);
+  const projectTitlesInput = _actions_core__WEBPACK_IMPORTED_MODULE_0__.getInput('project-titles');
+  const titles = projectTitlesInput.split(/\s+/);
 
   // Get the JSON webhook payload for the event that triggered the workflow
   const {
@@ -10832,15 +10825,15 @@ try {
     },
   } = _actions_github__WEBPACK_IMPORTED_MODULE_1__;
 
-  const rpm = new _projects_js__WEBPACK_IMPORTED_MODULE_5__/* .RepositoryProjectsManager */ .n({
+  const rpm = new _projects_js__WEBPACK_IMPORTED_MODULE_4__/* .RepositoryProjectsManager */ .n({
     owner: repository.owner.login,
     repository: repository.name,
     octokit,
   });
 
-  await rpm.sync(projects);
+  await rpm.sync(titles);
 
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('projects', rpm.projects.map((p) => p.title).join(' '));
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('project-titles', rpm.projects.map((p) => p.title).join(' '));
 } catch (error) {
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error.message);
 }
@@ -10872,7 +10865,7 @@ class RepositoryProjectsManager {
     await this.#init();
 
     await this.#createMissingProjectsFrom(titles);
-    await this.#deleteProjectsNotIn(titles);
+    await this.#deleteProjectsNotGivenBy(titles);
 
     await this.#fetchRepositoryAndProjects(); // refresh local
   }
@@ -10901,12 +10894,14 @@ class RepositoryProjectsManager {
   }
 
   async #fetchRepositoryAndProjects() {
+    // max limit for `first` is 100
+    // https://docs.github.com/en/graphql/overview/resource-limitations
     const response = await this.octokit.graphql.paginate(`
       query paginate($cursor: String) {
         repository(owner: "${this.owner}", name: "${this.repositoryName}") {
           name
           id
-          projectsV2(first: 10, after: $cursor) {
+          projectsV2(first: 100, after: $cursor) {
             nodes {
               id
               title
@@ -10923,18 +10918,19 @@ class RepositoryProjectsManager {
   }
 
   async #createMissingProjectsFrom(titles) {
-    const missing = titles.filter((title) => !this.projects.map((p) => p.title).includes(title));
+    const titlesToCreate = titles.filter((title) => !this.projects.map((p) => p.title)
+      .includes(title));
 
-    for await (const title of missing) {
+    for await (const title of titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
       await this.#createProject(title);
     }
   }
 
-  async #deleteProjectsNotIn(titles) {
-    const unspecified = this.projects.filter((p) => !titles.includes(p.title));
+  async #deleteProjectsNotGivenBy(titles) {
+    const projectsToDelete = this.projects.filter((p) => !titles.includes(p.title));
 
-    for await (const project of unspecified) {
+    for await (const project of projectsToDelete) {
       await this.#deleteProject(project); // more than 5 breaks API endpoint
     }
   }

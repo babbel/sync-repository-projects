@@ -20,8 +20,8 @@ const GraphQlOctokit = Octokit.plugin(paginateGraphql);
 const octokit = new GraphQlOctokit({ auth: auth.token });
 
 try {
-  const projectsInput = core.getInput('projects');
-  const projects = projectsInput.split(/\s+/);
+  const projectTitlesInput = core.getInput('project-titles');
+  const titles = projectTitlesInput.split(/\s+/);
 
   // Get the JSON webhook payload for the event that triggered the workflow
   const {
@@ -38,9 +38,9 @@ try {
     octokit,
   });
 
-  await rpm.sync(projects);
+  await rpm.sync(titles);
 
-  core.setOutput('projects', rpm.projects.map((p) => p.title).join(' '));
+  core.setOutput('project-titles', rpm.projects.map((p) => p.title).join(' '));
 } catch (error) {
   core.setFailed(error.message);
 }

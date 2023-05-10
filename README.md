@@ -20,9 +20,9 @@ Moreover, the GitHub token of a GitHub App installation is expected as environme
 
 ## Inputs
 
-| Name             | Description                                          | Type         | Required? | Default |
-|------------------|------------------------------------------------------|--------------|-----------|---------|
-| `project-titles` | Space-separated list of projects titles to be synced | `string`     | YES       | ''      |
+| Name             | Description                                          | Type         | Required? |
+|------------------|------------------------------------------------------|--------------|-----------|
+| `project-titles` | Space-separated list of projects titles to be synced | `string`     | YES       |
 
 
 ## Outputs

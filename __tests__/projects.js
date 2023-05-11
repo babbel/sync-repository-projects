@@ -73,4 +73,108 @@ describe('sync', () => {
 
     expect(outputTitles).toEqual(titles);
   });
+
+  test('when one project is missing', async () => {
+    const titles = [
+      'layer-200/foo',
+      'layer-100/grogu',
+    ];
+
+    nock('https://api.github.com')
+      .post('/graphql', (body) => {
+        const regex = /.*organization.login:.*/;
+        return regex.test(body.query);
+      })
+      .reply(200, {
+        data: {
+          organization: {
+            id: 'O_kgDOAnsQgg',
+            name: 'Babbel Sandbox',
+          },
+        },
+      })
+      .post('/graphql', (body) => {
+        const regex = /.*projectsV2.first:.*/;
+        const result = regex.test(body.query);
+        return result;
+      })
+      .reply(
+        200,
+        {
+          data: {
+            repository: {
+              name: 'test-repo-jsaito-3',
+              id: 'R_kgDOJSgWug',
+              projectsV2: {
+                nodes: [
+                  {
+                    id: 'PVT_kwDOAnsQgs4AP9Qo',
+                    title: 'layer-100/grogu',
+                  },
+                ],
+                pageInfo: {
+                  hasNextPage: false,
+                  endCursor: 'Mq',
+                },
+              },
+            },
+          },
+        },
+      )
+      .post('/graphql', (body) => {
+        const regex = /.*createProjectV2.*/; // TODO drop .* everywhere?
+        const result = regex.test(body.query);
+        return result;
+      })
+      .reply(
+        200,
+        {
+          data: {
+            createProjectV2: {
+              projectV2: {
+                id: 'PVT_kwDOAnsQgs4AQD1t',
+              },
+            },
+          },
+        },
+      )
+      .post('/graphql', (body) => {
+        const regex = /.*projectsV2.first:.*/;
+        const result = regex.test(body.query);
+        return result;
+      })
+      .reply(
+        200,
+        {
+          data: {
+            repository: {
+              name: 'test-repo-jsaito-3',
+              id: 'R_kgDOJSgWug',
+              projectsV2: {
+                nodes: [
+                  {
+                    id: 'PVT_kwDOAnsQgs4AQD1t',
+                    title: 'layer-200/foo',
+                  },
+                  {
+                    id: 'PVT_kwDOAnsQgs4AP9Qo',
+                    title: 'layer-100/grogu',
+                  },
+                ],
+                pageInfo: {
+                  hasNextPage: false,
+                  endCursor: 'Mq',
+                },
+              },
+            },
+          },
+        },
+      );
+
+    await rpm.sync(titles);
+
+    const outputTitles = rpm.projects.map((p) => p.title);
+
+    expect(outputTitles).toEqual(titles);
+  });
 });

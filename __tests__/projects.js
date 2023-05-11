@@ -21,10 +21,7 @@ describe('sync', () => {
     ];
 
     nock('https://api.github.com')
-      .post('/graphql', (body) => {
-        const regex = /.*organization.login:.*/;
-        return regex.test(body.query);
-      })
+      .post('/graphql', (body) => /.*organization.login:.*/.test(body.query))
       .reply(200, {
         data: {
           organization: {
@@ -33,11 +30,7 @@ describe('sync', () => {
           },
         },
       })
-      .post('/graphql', (body) => {
-        const regex = /.*projectsV2.first:.*/;
-        const result = regex.test(body.query);
-        return result;
-      })
+      .post('/graphql', (body) => /projectsV2.first:/.test(body.query))
       .twice()
       .reply(
         200,
@@ -68,9 +61,7 @@ describe('sync', () => {
       );
 
     await rpm.sync(titles);
-
     const outputTitles = rpm.projects.map((p) => p.title);
-
     expect(outputTitles).toEqual(titles);
   });
 
@@ -81,10 +72,7 @@ describe('sync', () => {
     ];
 
     nock('https://api.github.com')
-      .post('/graphql', (body) => {
-        const regex = /.*organization.login:.*/;
-        return regex.test(body.query);
-      })
+      .post('/graphql', (body) => /organization.login:/.test(body.query))
       .reply(200, {
         data: {
           organization: {
@@ -93,11 +81,7 @@ describe('sync', () => {
           },
         },
       })
-      .post('/graphql', (body) => {
-        const regex = /.*projectsV2.first:.*/;
-        const result = regex.test(body.query);
-        return result;
-      })
+      .post('/graphql', (body) => /projectsV2.first:/.test(body.query))
       .reply(
         200,
         {
@@ -121,11 +105,7 @@ describe('sync', () => {
           },
         },
       )
-      .post('/graphql', (body) => {
-        const regex = /.*createProjectV2.*/; // TODO drop .* everywhere?
-        const result = regex.test(body.query);
-        return result;
-      })
+      .post('/graphql', (body) => /createProjectV2/.test(body.query))
       .reply(
         200,
         {
@@ -138,11 +118,7 @@ describe('sync', () => {
           },
         },
       )
-      .post('/graphql', (body) => {
-        const regex = /.*projectsV2.first:.*/;
-        const result = regex.test(body.query);
-        return result;
-      })
+      .post('/graphql', (body) => /projectsV2.first:/.test(body.query))
       .reply(
         200,
         {
@@ -172,9 +148,7 @@ describe('sync', () => {
       );
 
     await rpm.sync(titles);
-
     const outputTitles = rpm.projects.map((p) => p.title);
-
     expect(outputTitles).toEqual(titles);
   });
 });

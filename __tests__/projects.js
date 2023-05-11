@@ -1,4 +1,4 @@
-import nock from 'nock';
+import nock from 'nock'; // https://github.com/nock/nock
 
 import { Octokit } from '@octokit/core';
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
@@ -13,7 +13,18 @@ const rpm = new RepositoryProjectsManager({
   octokit,
 });
 
-describe('sync', () => {
+describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
+  beforeEach(() => {
+    if (!nock.isActive()) {
+      nock.restore();
+      nock.activate();
+    }
+  });
+
+  afterEach(() => {
+    nock.restore();
+  });
+
   test('when no change is required', async () => {
     const titles = [
       'layer-200/foo',

@@ -7,7 +7,7 @@
   "scripts": {
     "build": "ncc build index.js",
     "lint": "eslint .",
-    "test": "echo no tests defined"
+    "test": "jest --config=jest.config.json"
   },
   "repository": {
     "type": "git",
@@ -30,7 +30,10 @@
     "@vercel/ncc": "*",
     "eslint": "*",
     "eslint-config-airbnb-base": "*",
-    "eslint-plugin-import": "*"
+    "eslint-plugin-import": "*",
+    "jest": "^29.5.0",
+    "nock": "*",
+    "ts-jest": "^29.1.0"
   },
   "author": "Babbel",
   "license": "MIT",

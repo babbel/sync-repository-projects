@@ -13,4 +13,7 @@ jobs:
           node-version-file: .nvmrc
       - run: npm ci
       - run: npm run lint
-      - run: npm run test
+
+      # Jets requires an extra node flag to work with ES modules
+      # cf. https://jestjs.io/docs/ecmascript-modules
+      - run: NODE_OPTIONS='--experimental-vm-modules' npm run test

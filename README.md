@@ -37,3 +37,12 @@ Moreover, the GitHub token of a GitHub App installation is expected as environme
 
 Instead of checking in `node_modules` for the [JavaScript action](https://docs.github.com/en/actions/creating-actions/creating-a-javascript-action)
 we are using [ncc](https://github.com/vercel/ncc). To build the project run `npm run build`.
+
+
+## Tests
+
+This project is using [Jest](https://jestjs.io/) for testing. Combining Jest and ES modules [requires](https://jestjs.io/docs/ecmascript-modules) setting node flag `--experimental-vm-modules`. Run the tests as follows.
+
+```
+NODE_OPTIONS='--experimental-vm-modules' npm run test
+```

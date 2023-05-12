@@ -1,5 +1,5 @@
 {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "transform": {}
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "transform": {}
 }

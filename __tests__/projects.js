@@ -5,7 +5,7 @@ import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
 import { RepositoryProjectsManager } from '../projects.js'; // eslint-disable-line import/extensions
 
 const GraphQlOctokit = Octokit.plugin(paginateGraphql);
-const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // dont' use default GITHUB_TOKEN token from env
+const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use default GITHUB_TOKEN token from env
 
 const rpm = new RepositoryProjectsManager({
   owner: 'babbel-sandbox',

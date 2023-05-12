@@ -15,10 +15,8 @@ const rpm = new RepositoryProjectsManager({
 
 describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
   beforeEach(() => {
-    if (!nock.isActive()) {
-      nock.restore();
-      nock.activate();
-    }
+    nock.restore();
+    nock.activate();
   });
 
   afterEach(() => {

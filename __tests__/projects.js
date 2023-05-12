@@ -8,8 +8,8 @@ const GraphQlOctokit = Octokit.plugin(paginateGraphql);
 const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use default GITHUB_TOKEN token from env
 
 const rpm = new RepositoryProjectsManager({
-  owner: 'babbel-sandbox',
-  repository: 'test-repo-jsaito-3',
+  owner: 'acme',
+  repository: 'example-repository',
   octokit,
 });
 
@@ -25,8 +25,8 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
 
   test('when no change is required', async () => {
     const titles = [
-      'layer-200/foo',
-      'layer-100/grogu',
+      'layer-200/module-1',
+      'layer-100/module-2',
     ];
 
     nock('https://api.github.com')
@@ -34,8 +34,8 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
       .reply(200, {
         data: {
           organization: {
-            id: 'O_kgDOAnsQgg',
-            name: 'Babbel Sandbox',
+            id: 'O_0000000001',
+            name: 'ACME Corporation',
           },
         },
       })
@@ -46,17 +46,17 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
         {
           data: {
             repository: {
-              name: 'test-repo-jsaito-3',
-              id: 'R_kgDOJSgWug',
+              name: 'example-repository',
+              id: 'R_0000000001',
               projectsV2: {
                 nodes: [
                   {
                     id: 'PVT_kwDOAnsQgs4AP9Qq',
-                    title: 'layer-200/foo',
+                    title: 'layer-200/module-1',
                   },
                   {
-                    id: 'PVT_kwDOAnsQgs4AP9Qo',
-                    title: 'layer-100/grogu',
+                    id: 'PVT_000000000000002',
+                    title: 'layer-100/module-2',
                   },
                 ],
                 pageInfo: {
@@ -76,8 +76,8 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
 
   test('when one project is missing', async () => {
     const titles = [
-      'layer-200/foo',
-      'layer-100/grogu',
+      'layer-200/module-1',
+      'layer-100/module-2',
     ];
 
     nock('https://api.github.com')
@@ -85,7 +85,7 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
       .reply(200, {
         data: {
           organization: {
-            id: 'O_kgDOAnsQgg',
+            id: 'O_0000000001',
             name: 'Babbel Sandbox',
           },
         },
@@ -96,13 +96,13 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
         {
           data: {
             repository: {
-              name: 'test-repo-jsaito-3',
-              id: 'R_kgDOJSgWug',
+              name: 'example-repository',
+              id: 'R_0000000001',
               projectsV2: {
                 nodes: [
                   {
-                    id: 'PVT_kwDOAnsQgs4AP9Qo',
-                    title: 'layer-100/grogu',
+                    id: 'PVT_000000000000002',
+                    title: 'layer-100/module-2',
                   },
                 ],
                 pageInfo: {
@@ -121,7 +121,7 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
           data: {
             createProjectV2: {
               projectV2: {
-                id: 'PVT_kwDOAnsQgs4AQD1t',
+                id: 'PVT_0000000000000001',
               },
             },
           },
@@ -133,17 +133,17 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
         {
           data: {
             repository: {
-              name: 'test-repo-jsaito-3',
-              id: 'R_kgDOJSgWug',
+              name: 'example-repository',
+              id: 'R_0000000001',
               projectsV2: {
                 nodes: [
                   {
-                    id: 'PVT_kwDOAnsQgs4AQD1t',
-                    title: 'layer-200/foo',
+                    id: 'PVT_0000000000000001',
+                    title: 'layer-200/module-1',
                   },
                   {
-                    id: 'PVT_kwDOAnsQgs4AP9Qo',
-                    title: 'layer-100/grogu',
+                    id: 'PVT_000000000000002',
+                    title: 'layer-100/module-2',
                   },
                 ],
                 pageInfo: {

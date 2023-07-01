@@ -33,7 +33,7 @@
     "eslint-plugin-import": "*",
     "jest": "^29.5.0",
     "nock": "*",
-    "ts-jest": "^29.1.0"
+    "ts-jest": "^29.1.1"
   },
   "author": "Babbel",
   "license": "MIT",

@@ -2,16 +2,14 @@ import nock from 'nock'; // https://github.com/nock/nock
 
 import { Octokit } from '@octokit/core';
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
-import { RepositoryProjectsManager } from '../projects.js'; // eslint-disable-line import/extensions
+import { ApiWrapper, RepositoryProjectsManager } from '../projects.js'; // eslint-disable-line import/extensions
 
 const GraphQlOctokit = Octokit.plugin(paginateGraphql);
 const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use default GITHUB_TOKEN token from env
 
-const rpm = new RepositoryProjectsManager({
-  owner: 'acme',
-  repository: 'example-repository',
-  octokit,
-});
+const apiWrapper = new ApiWrapper({ octokit, owner: 'acme', repository: 'example-repository' });
+
+const rpm = new RepositoryProjectsManager({ apiWrapper });
 
 describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
   beforeEach(() => {

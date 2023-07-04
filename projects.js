@@ -1,7 +1,13 @@
 class ApiWrapper {
   constructor({ octokit, owner, repository }) {
     this.octokit = octokit;
-    this.clientMutationId = `sync-repository-projects-${owner}-${repository}`;
+    this.owner = owner;
+    this.repository = repository;
+
+    // the value of this string is not documented other than:
+    // "A unique identifier for the client performing the mutation."
+    // https://docs.github.com/en/graphql/reference/mutations
+    this.clientMutationId = `sync-repository-projects-${this.owner}-${this.repository}`;
   }
 
   async createProject({ title, organization, repository }) {
@@ -23,11 +29,11 @@ class ApiWrapper {
     return id;
   }
 
-  async fetchOrganiztion({ owner }) {
+  async fetchOrganiztion() {
     const { organization } = await this.octokit.graphql(
       `
       query {
-        organization(login: "${owner}") {
+        organization(login: "${this.owner}") {
           id
           name
         }
@@ -42,12 +48,12 @@ class ApiWrapper {
     return organization;
   }
 
-  async fetchRepository({ owner, repositoryName }) {
+  async fetchRepository({ repositoryName }) {
     // max limit for `first` is 100
     // https://docs.github.com/en/graphql/overview/resource-limitations
     const response = await this.octokit.graphql.paginate(`
       query paginate($cursor: String) {
-        repository(owner: "${owner}", name: "${repositoryName}") {
+        repository(owner: "${this.owner}", name: "${repositoryName}") {
           name
           id
           projectsV2(first: 100, after: $cursor) {
@@ -65,7 +71,7 @@ class ApiWrapper {
     return response.repository;
   }
 
-  async deleteProject({ project, }) {
+  async deleteProject({ project }) {
     const { projectId: id } = await this.octokit.graphql(`
       mutation{
         deleteProjectV2(
@@ -85,15 +91,10 @@ class ApiWrapper {
 }
 
 class RepositoryProjectsManager {
-  constructor({ owner, repository, apiWrapper }) {
-    this.owner = owner;
-    this.repositoryName = repository;
+  constructor({ apiWrapper }) {
     this.apiWrapper = apiWrapper;
-
-    // the value of this string is not documented other than:
-    // "A unique identifier for the client performing the mutation."
-    // https://docs.github.com/en/graphql/reference/mutations
-    this.clientMutationId = `sync-repository-projects-${owner}-${repository}`;
+    this.owner = apiWrapper.owner;
+    this.repositoryName = apiWrapper.repository;
   }
 
   async sync(titles) {
@@ -104,8 +105,7 @@ class RepositoryProjectsManager {
 
     // refersh local
     this.repository = await this.apiWrapper.fetchRepository({
-      owner: this.owner,
-      repositoryName: this.repositoryName
+      repositoryName: this.repositoryName,
     });
     this.projects = this.repository.projectsV2.nodes;
   }
@@ -114,11 +114,10 @@ class RepositoryProjectsManager {
     // the GitHub Action's event can contain the "old" GraphQL node id.
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
-    this.organization = this.apiWrapper.fetchOrganiztion({ owner: this.owner });
+    this.organization = this.apiWrapper.fetchOrganiztion();
 
     this.repository = await this.apiWrapper.fetchRepository({
-      owner: this.owner,
-      repositoryName: this.repositoryName
+      repositoryName: this.repositoryName,
     });
     this.projects = this.repository.projectsV2.nodes;
   }
@@ -129,10 +128,10 @@ class RepositoryProjectsManager {
 
     for await (const title of titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
-      await this.apiWrapper.createProject({ 
+      await this.apiWrapper.createProject({
         title,
         organization: this.organization,
-        repository: this.repository 
+        repository: this.repository,
       });
     }
   }
@@ -146,4 +145,5 @@ class RepositoryProjectsManager {
   }
 }
 
-export { RepositoryProjectsManager }; // eslint-disable-line import/prefer-default-export
+// eslint-disable-next-line import/prefer-default-export
+export { ApiWrapper, RepositoryProjectsManager };

@@ -21,6 +21,29 @@ class ApiWrapper {
 
     return organization;
   }
+
+  async fetchRepository({ owner, repositoryName }) {
+    // max limit for `first` is 100
+    // https://docs.github.com/en/graphql/overview/resource-limitations
+    const response = await this.octokit.graphql.paginate(`
+      query paginate($cursor: String) {
+        repository(owner: "${owner}", name: "${repositoryName}") {
+          name
+          id
+          projectsV2(first: 100, after: $cursor) {
+            nodes {
+              id
+              title
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      }`);
+    return response.repository;
+  }
 }
 
 class RepositoryProjectsManager {
@@ -41,7 +64,12 @@ class RepositoryProjectsManager {
     await this.#createMissingProjectsFrom(titles);
     await this.#deleteProjectsNotGivenBy(titles);
 
-    await this.#fetchRepositoryAndProjects(); // refresh local
+    // refersh local
+    this.repository = await this.apiWrapper.fetchRepository({
+      owner: this.owner,
+      repositoryName: this.repositoryName
+    });
+    this.projects = this.repository.projectsV2.nodes;
   }
 
   async #init() {
@@ -50,31 +78,11 @@ class RepositoryProjectsManager {
     // https://github.blog/changelog/label/deprecation/
     this.organization = this.apiWrapper.fetchOrganiztion({ owner: this.owner });
 
-    await this.#fetchRepositoryAndProjects();
-  }
-
-  async #fetchRepositoryAndProjects() {
-    // max limit for `first` is 100
-    // https://docs.github.com/en/graphql/overview/resource-limitations
-    const response = await this.octokit.graphql.paginate(`
-      query paginate($cursor: String) {
-        repository(owner: "${this.owner}", name: "${this.repositoryName}") {
-          name
-          id
-          projectsV2(first: 100, after: $cursor) {
-            nodes {
-              id
-              title
-            }
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-          }
-        }
-      }`);
-    this.repository = response.repository;
-    this.projects = response.repository.projectsV2.nodes;
+    this.repository = await this.apiWrapper.fetchRepository({
+      owner: this.owner,
+      repositoryName: this.repositoryName
+    });
+    this.projects = this.repository.projectsV2.nodes;
   }
 
   async #createMissingProjectsFrom(titles) {

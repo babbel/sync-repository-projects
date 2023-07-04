@@ -4,6 +4,7 @@ import github from '@actions/github';
 import { Octokit } from '@octokit/core';
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
 
+import { ApiWrapper } from './apiwrapper.js'; // eslint-disable-line import/extensions
 import { RepositoryProjectsManager } from './projects.js'; // eslint-disable-line import/extensions
 
 const GraphQlOctokit = Octokit.plugin(paginateGraphql);
@@ -26,11 +27,13 @@ try {
     },
   } = github;
 
-  const rpm = new RepositoryProjectsManager({
+  const apiWrapper = new ApiWrapper({
+    octokit,
     owner: repository.owner.login,
     repository: repository.name,
-    octokit,
   });
+
+  const rpm = new RepositoryProjectsManager({ apiWrapper });
 
   await rpm.sync(titles);
 

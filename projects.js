@@ -1,6 +1,7 @@
 class ApiWrapper {
-  constructor({ octokit }) {
+  constructor({ octokit, owner, repository }) {
     this.octokit = octokit;
+    this.clientMutationId = `sync-repository-projects-${owner}-${repository}`;
   }
 
   async fetchOrganiztion({ owner }) {
@@ -43,6 +44,24 @@ class ApiWrapper {
         }
       }`);
     return response.repository;
+  }
+
+  async deleteProject({ project, }) {
+    const { projectId: id } = await this.octokit.graphql(`
+      mutation{
+        deleteProjectV2(
+          input: {
+            clientMutationId: "${this.clientMutationId}"
+            projectId: "${project.id}",
+          }
+        ){
+          projectV2 {
+            id
+          }
+        }
+      }`);
+
+    return id;
   }
 }
 
@@ -99,7 +118,7 @@ class RepositoryProjectsManager {
     const projectsToDelete = this.projects.filter((p) => !titles.includes(p.title));
 
     for await (const project of projectsToDelete) {
-      await this.#deleteProject(project); // more than 5 breaks API endpoint
+      await this.apiWrapper.deleteProject(project); // more than 5 breaks API endpoint
     }
   }
 
@@ -122,23 +141,6 @@ class RepositoryProjectsManager {
     return id;
   }
 
-  async #deleteProject(project) {
-    const { projectId: id } = await this.octokit.graphql(`
-      mutation{
-        deleteProjectV2(
-          input: {
-            clientMutationId: "${this.clientMutationId}"
-            projectId: "${project.id}",
-          }
-        ){
-          projectV2 {
-            id
-          }
-        }
-      }`);
-
-    return id;
-  }
 }
 
 export { RepositoryProjectsManager }; // eslint-disable-line import/prefer-default-export

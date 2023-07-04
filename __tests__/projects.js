@@ -69,7 +69,7 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
       );
 
     await rpm.sync(titles);
-    const outputTitles = rpm.projects.map((p) => p.title);
+    const outputTitles = rpm.projects().map((p) => p.title);
     expect(outputTitles).toEqual(titles);
   });
 
@@ -156,7 +156,7 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
       );
 
     await rpm.sync(titles);
-    const outputTitles = rpm.projects.map((p) => p.title);
+    const outputTitles = rpm.projects().map((p) => p.title);
     expect(outputTitles).toEqual(titles);
   });
 });

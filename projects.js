@@ -1,3 +1,10 @@
+class ApiWrapper {
+  constructor({ octokit }) {
+    this.octokit = octokit;
+  }
+
+}
+
 class RepositoryProjectsManager {
   constructor({ owner, repository, apiWrapper }) {
     this.owner = owner;

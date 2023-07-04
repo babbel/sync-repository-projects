@@ -1,6 +1,8 @@
 class RepositoryProjectsManager {
   #organization;
+
   #projects;
+
   #repository;
 
   constructor({ apiWrapper }) {
@@ -15,7 +17,7 @@ class RepositoryProjectsManager {
 
     // refersh local
     this.#repository = await this.apiWrapper.fetchRepository({
-      repositoryName: this.apiWrapper.repositoryName
+      repositoryName: this.apiWrapper.repositoryName,
     });
     this.#projects = this.#repository.projectsV2.nodes;
   }
@@ -31,7 +33,7 @@ class RepositoryProjectsManager {
     this.#organization = this.apiWrapper.fetchOrganiztion();
 
     this.#repository = await this.apiWrapper.fetchRepository({
-      repositoryName: this.apiWrapper.repositoryName
+      repositoryName: this.apiWrapper.repositoryName,
     });
     this.#projects = this.#repository.projectsV2.nodes;
   }

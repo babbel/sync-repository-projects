@@ -1,8 +1,8 @@
 class RepositoryProjectsManager {
-  constructor({ owner, repository, octokit }) {
+  constructor({ owner, repository, apiWrapper }) {
     this.owner = owner;
     this.repositoryName = repository;
-    this.octokit = octokit;
+    this.apiWrapper = apiWrapper;
 
     // the value of this string is not documented other than:
     // "A unique identifier for the client performing the mutation."

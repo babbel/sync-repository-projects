@@ -4,11 +4,30 @@ class ApiWrapper {
     this.clientMutationId = `sync-repository-projects-${owner}-${repository}`;
   }
 
+  async createProject({ title, organization, repository }) {
+    const { createProjectV2: { projectV2: { id } } } = await this.octokit.graphql(`
+      mutation {
+        createProjectV2(
+          input: {
+            ownerId: "${organization.id}",
+            title: "${title}",
+            repositoryId: "${repository.id}",
+          }
+        ){
+          projectV2 {
+            id
+          }
+        }
+      }`);
+
+    return id;
+  }
+
   async fetchOrganiztion({ owner }) {
     const { organization } = await this.octokit.graphql(
       `
       query {
-        organization(login: "${this.owner}") {
+        organization(login: "${owner}") {
           id
           name
         }
@@ -110,7 +129,11 @@ class RepositoryProjectsManager {
 
     for await (const title of titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
-      await this.#createProject(title);
+      await this.apiWrapper.createProject({ 
+        title,
+        organization: this.organization,
+        repository: this.repository 
+      });
     }
   }
 
@@ -121,26 +144,6 @@ class RepositoryProjectsManager {
       await this.apiWrapper.deleteProject(project); // more than 5 breaks API endpoint
     }
   }
-
-  async #createProject(title) {
-    const { createProjectV2: { projectV2: { id } } } = await this.octokit.graphql(`
-      mutation{
-        createProjectV2(
-          input: {
-            ownerId: "${this.organization.id}",
-            title: "${title}",
-            repositoryId: "${this.repository.id}",
-          }
-        ){
-          projectV2 {
-            id
-          }
-        }
-      }`);
-
-    return id;
-  }
-
 }
 
 export { RepositoryProjectsManager }; // eslint-disable-line import/prefer-default-export

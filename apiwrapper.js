@@ -5,6 +5,8 @@ class ApiWrapper {
 
   #repository;
 
+  #clientMutationId;
+
   constructor({ octokit, owner, repository }) {
     this.#octokit = octokit;
     this.#owner = owner;
@@ -13,7 +15,7 @@ class ApiWrapper {
     // the value of this string is not documented other than:
     // "A unique identifier for the client performing the mutation."
     // https://docs.github.com/en/graphql/reference/mutations
-    this.clientMutationId = `sync-repository-projects-${this.#owner}-${this.#repository}`;
+    this.#clientMutationId = `sync-repository-projects-${this.#owner}-${this.#repository}`;
   }
 
   async createProject({ title, organization, repository }) {
@@ -82,7 +84,7 @@ class ApiWrapper {
       mutation{
         deleteProjectV2(
           input: {
-            clientMutationId: "${this.clientMutationId}"
+            clientMutationId: "${this.#clientMutationId}"
             projectId: "${project.id}",
           }
         ){

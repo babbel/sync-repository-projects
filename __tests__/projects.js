@@ -8,9 +8,9 @@ import { RepositoryProjectsManager } from '../projects.js'; // eslint-disable-li
 const GraphQlOctokit = Octokit.plugin(paginateGraphql);
 const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use default GITHUB_TOKEN token from env
 
-const apiWrapper = new ApiWrapper({ octokit, owner: 'acme', repository: 'example-repository' });
+const apiWrapper = new ApiWrapper({ octokit });
 
-const rpm = new RepositoryProjectsManager({ apiWrapper });
+const rpm = new RepositoryProjectsManager({ apiWrapper, owner: 'acme', repositoryName: 'example-repository' });
 
 describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
   beforeEach(() => {

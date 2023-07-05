@@ -27,13 +27,13 @@ try {
     },
   } = github;
 
-  const apiWrapper = new ApiWrapper({
-    octokit,
-    owner: repository.owner.login,
-    repository: repository.name,
-  });
+  const apiWrapper = new ApiWrapper({ octokit });
 
-  const rpm = new RepositoryProjectsManager({ apiWrapper });
+  const rpm = new RepositoryProjectsManager({
+    owner: repository.owner.login,
+    repositoryName: repository.name,
+    apiWrapper,
+  });
 
   await rpm.sync(titles);
 

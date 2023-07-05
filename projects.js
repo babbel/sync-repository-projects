@@ -1,14 +1,27 @@
 class RepositoryProjectsManager {
   #apiWrapper;
 
+  #clientMutationId;
+
   #organization;
+
+  #owner;
 
   #projects;
 
   #repository;
 
-  constructor({ apiWrapper }) {
+  #repositoryName;
+
+  constructor({ apiWrapper, owner, repositoryName }) {
     this.#apiWrapper = apiWrapper;
+    this.#owner = owner;
+    this.#repositoryName = repositoryName;
+
+    // the value of this string is not documented other than:
+    // "A unique identifier for the client performing the mutation."
+    // https://docs.github.com/en/graphql/reference/mutations
+    this.#clientMutationId = `sync-repository-projects-${this.#owner}-${this.#repositoryName}`;
   }
 
   async sync(titles) {
@@ -18,7 +31,10 @@ class RepositoryProjectsManager {
     await this.#deleteProjectsNotGivenBy(titles);
 
     // refersh local
-    this.#repository = await this.#apiWrapper.fetchRepository();
+    this.#repository = await this.#apiWrapper.fetchRepository({
+      owner: this.#owner,
+      repositoryName: this.#repositoryName,
+    });
     this.#projects = this.#repository.projectsV2.nodes;
   }
 
@@ -30,9 +46,12 @@ class RepositoryProjectsManager {
     // the GitHub Action's event can contain the "old" GraphQL node id.
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
-    this.#organization = this.#apiWrapper.fetchOrganiztion();
+    this.#organization = this.#apiWrapper.fetchOrganiztion({ owner: this.#owner });
 
-    this.#repository = await this.#apiWrapper.fetchRepository();
+    this.#repository = await this.#apiWrapper.fetchRepository({
+      owner: this.#owner,
+      repositoryName: this.#repositoryName,
+    });
     this.#projects = this.#repository.projectsV2.nodes;
   }
 
@@ -54,7 +73,11 @@ class RepositoryProjectsManager {
     const projectsToDelete = this.#projects.filter((p) => !titles.includes(p.title));
 
     for await (const project of projectsToDelete) {
-      await this.#apiWrapper.deleteProject(project); // more than 5 breaks API endpoint
+      // more than 5 breaks API endpoint
+      await this.#apiWrapper.deleteProject({
+        project,
+        clientMutationId: this.#clientMutationId,
+      });
     }
   }
 }

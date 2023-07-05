@@ -1,21 +1,8 @@
 class ApiWrapper {
   #octokit;
 
-  #owner;
-
-  #repository;
-
-  #clientMutationId;
-
-  constructor({ octokit, owner, repository }) {
+  constructor({ octokit }) {
     this.#octokit = octokit;
-    this.#owner = owner;
-    this.#repository = repository;
-
-    // the value of this string is not documented other than:
-    // "A unique identifier for the client performing the mutation."
-    // https://docs.github.com/en/graphql/reference/mutations
-    this.#clientMutationId = `sync-repository-projects-${this.#owner}-${this.#repository}`;
   }
 
   async createProject({ title, organization, repository }) {
@@ -37,11 +24,11 @@ class ApiWrapper {
     return id;
   }
 
-  async fetchOrganiztion() {
+  async fetchOrganiztion({ owner }) {
     const { organization } = await this.#octokit.graphql(
       `
       query {
-        organization(login: "${this.#owner}") {
+        organization(login: "${owner}") {
           id
           name
         }
@@ -56,12 +43,12 @@ class ApiWrapper {
     return organization;
   }
 
-  async fetchRepository() {
+  async fetchRepository({ owner, repositoryName }) {
     // max limit for `first` is 100
     // https://docs.github.com/en/graphql/overview/resource-limitations
     const response = await this.#octokit.graphql.paginate(`
       query paginate($cursor: String) {
-        repository(#owner: "${this.#owner}", name: "${this.#repository}") {
+        repository(#owner: "${owner}", name: "${repositoryName}") {
           name
           id
           projectsV2(first: 100, after: $cursor) {
@@ -79,12 +66,12 @@ class ApiWrapper {
     return response.repository;
   }
 
-  async deleteProject({ project }) {
+  async deleteProject({ project, clientMutationId }) {
     const { projectId: id } = await this.#octokit.graphql(`
       mutation{
         deleteProjectV2(
           input: {
-            clientMutationId: "${this.#clientMutationId}"
+            clientMutationId: "${clientMutationId}"
             projectId: "${project.id}",
           }
         ){

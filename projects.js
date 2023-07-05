@@ -18,9 +18,7 @@ class RepositoryProjectsManager {
     await this.#deleteProjectsNotGivenBy(titles);
 
     // refersh local
-    this.#repository = await this.#apiWrapper.fetchRepository({
-      repositoryName: this.#apiWrapper.repositoryName,
-    });
+    this.#repository = await this.#apiWrapper.fetchRepository();
     this.#projects = this.#repository.projectsV2.nodes;
   }
 
@@ -34,9 +32,7 @@ class RepositoryProjectsManager {
     // https://github.blog/changelog/label/deprecation/
     this.#organization = this.#apiWrapper.fetchOrganiztion();
 
-    this.#repository = await this.#apiWrapper.fetchRepository({
-      repositoryName: this.#apiWrapper.repositoryName,
-    });
+    this.#repository = await this.#apiWrapper.fetchRepository();
     this.#projects = this.#repository.projectsV2.nodes;
   }
 

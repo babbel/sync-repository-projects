@@ -56,12 +56,12 @@ class ApiWrapper {
     return organization;
   }
 
-  async fetchRepository({ repositoryName }) {
+  async fetchRepository() {
     // max limit for `first` is 100
     // https://docs.github.com/en/graphql/overview/resource-limitations
     const response = await this.#octokit.graphql.paginate(`
       query paginate($cursor: String) {
-        repository(#owner: "${this.#owner}", name: "${repositoryName}") {
+        repository(#owner: "${this.#owner}", name: "${this.#repository}") {
           name
           id
           projectsV2(first: 100, after: $cursor) {

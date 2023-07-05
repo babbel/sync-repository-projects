@@ -24,11 +24,11 @@ class ApiWrapper {
     return id;
   }
 
-  async fetchOrganiztion({ owner }) {
+  async fetchOrganiztion({ ownerName }) {
     const { organization } = await this.#octokit.graphql(
       `
       query {
-        organization(login: "${owner}") {
+        organization(login: "${ownerName}") {
           id
           name
         }
@@ -43,12 +43,12 @@ class ApiWrapper {
     return organization;
   }
 
-  async fetchRepository({ owner, repositoryName }) {
+  async fetchRepository({ ownerName, repositoryName }) {
     // max limit for `first` is 100
     // https://docs.github.com/en/graphql/overview/resource-limitations
     const response = await this.#octokit.graphql.paginate(`
       query paginate($cursor: String) {
-        repository(#owner: "${owner}", name: "${repositoryName}") {
+        repository(#owner: "${ownerName}", name: "${repositoryName}") {
           name
           id
           projectsV2(first: 100, after: $cursor) {

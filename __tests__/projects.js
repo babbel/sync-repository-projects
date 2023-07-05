@@ -10,7 +10,7 @@ const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use d
 
 const apiWrapper = new ApiWrapper({ octokit });
 
-const rpm = new RepositoryProjectsManager({ apiWrapper, owner: 'acme', repositoryName: 'example-repository' });
+const rpm = new RepositoryProjectsManager({ apiWrapper, ownerName: 'acme', repositoryName: 'example-repository' });
 
 describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
   beforeEach(() => {

@@ -30,7 +30,7 @@ try {
   const apiWrapper = new ApiWrapper({ octokit });
 
   const rpm = new RepositoryProjectsManager({
-    owner: repository.owner.login,
+    ownerName: repository.owner.login,
     repositoryName: repository.name,
     apiWrapper,
   });

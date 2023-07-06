@@ -3071,122 +3071,63 @@ exports.createTokenAuth = createTokenAuth;
 /***/ }),
 
 /***/ 6762:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-var __webpack_unused_export__;
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 
-__webpack_unused_export__ = ({ value: true });
-
-var universalUserAgent = __nccwpck_require__(5030);
-var beforeAfterHook = __nccwpck_require__(3682);
-var request = __nccwpck_require__(6234);
-var graphql = __nccwpck_require__(8467);
-var authToken = __nccwpck_require__(334);
-
-const VERSION = "4.2.0";
-
-class Octokit {
-  constructor(options = {}) {
-    const hook = new beforeAfterHook.Collection();
-    const requestDefaults = {
-      baseUrl: request.request.endpoint.DEFAULTS.baseUrl,
-      headers: {},
-      request: Object.assign({}, options.request, {
-        // @ts-ignore internal usage only, no need to type
-        hook: hook.bind(null, "request")
-      }),
-      mediaType: {
-        previews: [],
-        format: ""
-      }
-    }; // prepend default user agent with `options.userAgent` if set
-
-    requestDefaults.headers["user-agent"] = [options.userAgent, `octokit-core.js/${VERSION} ${universalUserAgent.getUserAgent()}`].filter(Boolean).join(" ");
-
-    if (options.baseUrl) {
-      requestDefaults.baseUrl = options.baseUrl;
-    }
-
-    if (options.previews) {
-      requestDefaults.mediaType.previews = options.previews;
-    }
-
-    if (options.timeZone) {
-      requestDefaults.headers["time-zone"] = options.timeZone;
-    }
-
-    this.request = request.request.defaults(requestDefaults);
-    this.graphql = graphql.withCustomRequest(this.request).defaults(requestDefaults);
-    this.log = Object.assign({
-      debug: () => {},
-      info: () => {},
-      warn: console.warn.bind(console),
-      error: console.error.bind(console)
-    }, options.log);
-    this.hook = hook; // (1) If neither `options.authStrategy` nor `options.auth` are set, the `octokit` instance
-    //     is unauthenticated. The `this.auth()` method is a no-op and no request hook is registered.
-    // (2) If only `options.auth` is set, use the default token authentication strategy.
-    // (3) If `options.authStrategy` is set then use it and pass in `options.auth`. Always pass own request as many strategies accept a custom request instance.
-    // TODO: type `options.auth` based on `options.authStrategy`.
-
-    if (!options.authStrategy) {
-      if (!options.auth) {
-        // (1)
-        this.auth = async () => ({
-          type: "unauthenticated"
-        });
-      } else {
-        // (2)
-        const auth = authToken.createTokenAuth(options.auth); // @ts-ignore  ¯\_(ツ)_/¯
-
-        hook.wrap("request", auth.hook);
-        this.auth = auth;
-      }
-    } else {
-      const {
-        authStrategy,
-        ...otherOptions
-      } = options;
-      const auth = authStrategy(Object.assign({
-        request: this.request,
-        log: this.log,
-        // we pass the current octokit instance as well as its constructor options
-        // to allow for authentication strategies that return a new octokit instance
-        // that shares the same internal state as the current one. The original
-        // requirement for this was the "event-octokit" authentication strategy
-        // of https://github.com/probot/octokit-auth-probot.
-        octokit: this,
-        octokitOptions: otherOptions
-      }, options.auth)); // @ts-ignore  ¯\_(ツ)_/¯
-
-      hook.wrap("request", auth.hook);
-      this.auth = auth;
-    } // apply plugins
-    // https://stackoverflow.com/a/16345172
-
-
-    const classConstructor = this.constructor;
-    classConstructor.plugins.forEach(plugin => {
-      Object.assign(this, plugin(this, options));
-    });
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
   }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  Octokit: () => Octokit
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_universal_user_agent = __nccwpck_require__(5030);
+var import_before_after_hook = __nccwpck_require__(3682);
+var import_request = __nccwpck_require__(6234);
+var import_graphql = __nccwpck_require__(8467);
+var import_auth_token = __nccwpck_require__(334);
+
+// pkg/dist-src/version.js
+var VERSION = "4.2.4";
+
+// pkg/dist-src/index.js
+var Octokit = class {
   static defaults(defaults) {
     const OctokitWithDefaults = class extends this {
       constructor(...args) {
         const options = args[0] || {};
-
         if (typeof defaults === "function") {
           super(defaults(options));
           return;
         }
-
-        super(Object.assign({}, defaults, options, options.userAgent && defaults.userAgent ? {
-          userAgent: `${options.userAgent} ${defaults.userAgent}`
-        } : null));
+        super(
+          Object.assign(
+            {},
+            defaults,
+            options,
+            options.userAgent && defaults.userAgent ? {
+              userAgent: `${options.userAgent} ${defaults.userAgent}`
+            } : null
+          )
+        );
       }
-
     };
     return OctokitWithDefaults;
   }
@@ -3196,22 +3137,97 @@ class Octokit {
    * @example
    * const API = Octokit.plugin(plugin1, plugin2, plugin3, ...)
    */
-
-
   static plugin(...newPlugins) {
     var _a;
-
     const currentPlugins = this.plugins;
-    const NewOctokit = (_a = class extends this {}, _a.plugins = currentPlugins.concat(newPlugins.filter(plugin => !currentPlugins.includes(plugin))), _a);
+    const NewOctokit = (_a = class extends this {
+    }, _a.plugins = currentPlugins.concat(
+      newPlugins.filter((plugin) => !currentPlugins.includes(plugin))
+    ), _a);
     return NewOctokit;
   }
-
-}
+  constructor(options = {}) {
+    const hook = new import_before_after_hook.Collection();
+    const requestDefaults = {
+      baseUrl: import_request.request.endpoint.DEFAULTS.baseUrl,
+      headers: {},
+      request: Object.assign({}, options.request, {
+        // @ts-ignore internal usage only, no need to type
+        hook: hook.bind(null, "request")
+      }),
+      mediaType: {
+        previews: [],
+        format: ""
+      }
+    };
+    requestDefaults.headers["user-agent"] = [
+      options.userAgent,
+      `octokit-core.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
+    ].filter(Boolean).join(" ");
+    if (options.baseUrl) {
+      requestDefaults.baseUrl = options.baseUrl;
+    }
+    if (options.previews) {
+      requestDefaults.mediaType.previews = options.previews;
+    }
+    if (options.timeZone) {
+      requestDefaults.headers["time-zone"] = options.timeZone;
+    }
+    this.request = import_request.request.defaults(requestDefaults);
+    this.graphql = (0, import_graphql.withCustomRequest)(this.request).defaults(requestDefaults);
+    this.log = Object.assign(
+      {
+        debug: () => {
+        },
+        info: () => {
+        },
+        warn: console.warn.bind(console),
+        error: console.error.bind(console)
+      },
+      options.log
+    );
+    this.hook = hook;
+    if (!options.authStrategy) {
+      if (!options.auth) {
+        this.auth = async () => ({
+          type: "unauthenticated"
+        });
+      } else {
+        const auth = (0, import_auth_token.createTokenAuth)(options.auth);
+        hook.wrap("request", auth.hook);
+        this.auth = auth;
+      }
+    } else {
+      const { authStrategy, ...otherOptions } = options;
+      const auth = authStrategy(
+        Object.assign(
+          {
+            request: this.request,
+            log: this.log,
+            // we pass the current octokit instance as well as its constructor options
+            // to allow for authentication strategies that return a new octokit instance
+            // that shares the same internal state as the current one. The original
+            // requirement for this was the "event-octokit" authentication strategy
+            // of https://github.com/probot/octokit-auth-probot.
+            octokit: this,
+            octokitOptions: otherOptions
+          },
+          options.auth
+        )
+      );
+      hook.wrap("request", auth.hook);
+      this.auth = auth;
+    }
+    const classConstructor = this.constructor;
+    classConstructor.plugins.forEach((plugin) => {
+      Object.assign(this, plugin(this, options));
+    });
+  }
+};
 Octokit.VERSION = VERSION;
 Octokit.plugins = [];
-
-exports.v = Octokit;
-//# sourceMappingURL=index.js.map
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
 
 
 /***/ }),
@@ -3572,55 +3588,92 @@ exports.endpoint = endpoint;
 /***/ }),
 
 /***/ 8467:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
 
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  GraphqlResponseError: () => GraphqlResponseError,
+  graphql: () => graphql2,
+  withCustomRequest: () => withCustomRequest
+});
+module.exports = __toCommonJS(dist_src_exports);
+var import_request = __nccwpck_require__(6234);
+var import_universal_user_agent = __nccwpck_require__(5030);
 
-var request = __nccwpck_require__(6234);
-var universalUserAgent = __nccwpck_require__(5030);
+// pkg/dist-src/version.js
+var VERSION = "5.0.6";
 
-const VERSION = "5.0.5";
-
+// pkg/dist-src/error.js
 function _buildMessageForResponseErrors(data) {
-  return `Request failed due to following response errors:\n` + data.errors.map(e => ` - ${e.message}`).join("\n");
+  return `Request failed due to following response errors:
+` + data.errors.map((e) => ` - ${e.message}`).join("\n");
 }
-class GraphqlResponseError extends Error {
-  constructor(request, headers, response) {
+var GraphqlResponseError = class extends Error {
+  constructor(request2, headers, response) {
     super(_buildMessageForResponseErrors(response));
-    this.request = request;
+    this.request = request2;
     this.headers = headers;
     this.response = response;
     this.name = "GraphqlResponseError";
-    // Expose the errors and response data in their shorthand properties.
     this.errors = response.errors;
     this.data = response.data;
-    // Maintains proper stack trace (only available on V8)
-    /* istanbul ignore next */
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
     }
   }
-}
+};
 
-const NON_VARIABLE_OPTIONS = ["method", "baseUrl", "url", "headers", "request", "query", "mediaType"];
-const FORBIDDEN_VARIABLE_OPTIONS = ["query", "method", "url"];
-const GHES_V3_SUFFIX_REGEX = /\/api\/v3\/?$/;
-function graphql(request, query, options) {
+// pkg/dist-src/graphql.js
+var NON_VARIABLE_OPTIONS = [
+  "method",
+  "baseUrl",
+  "url",
+  "headers",
+  "request",
+  "query",
+  "mediaType"
+];
+var FORBIDDEN_VARIABLE_OPTIONS = ["query", "method", "url"];
+var GHES_V3_SUFFIX_REGEX = /\/api\/v3\/?$/;
+function graphql(request2, query, options) {
   if (options) {
     if (typeof query === "string" && "query" in options) {
-      return Promise.reject(new Error(`[@octokit/graphql] "query" cannot be used as variable name`));
+      return Promise.reject(
+        new Error(`[@octokit/graphql] "query" cannot be used as variable name`)
+      );
     }
     for (const key in options) {
-      if (!FORBIDDEN_VARIABLE_OPTIONS.includes(key)) continue;
-      return Promise.reject(new Error(`[@octokit/graphql] "${key}" cannot be used as variable name`));
+      if (!FORBIDDEN_VARIABLE_OPTIONS.includes(key))
+        continue;
+      return Promise.reject(
+        new Error(`[@octokit/graphql] "${key}" cannot be used as variable name`)
+      );
     }
   }
-  const parsedOptions = typeof query === "string" ? Object.assign({
-    query
-  }, options) : query;
-  const requestOptions = Object.keys(parsedOptions).reduce((result, key) => {
+  const parsedOptions = typeof query === "string" ? Object.assign({ query }, options) : query;
+  const requestOptions = Object.keys(
+    parsedOptions
+  ).reduce((result, key) => {
     if (NON_VARIABLE_OPTIONS.includes(key)) {
       result[key] = parsedOptions[key];
       return result;
@@ -3631,26 +3684,29 @@ function graphql(request, query, options) {
     result.variables[key] = parsedOptions[key];
     return result;
   }, {});
-  // workaround for GitHub Enterprise baseUrl set with /api/v3 suffix
-  // https://github.com/octokit/auth-app.js/issues/111#issuecomment-657610451
-  const baseUrl = parsedOptions.baseUrl || request.endpoint.DEFAULTS.baseUrl;
+  const baseUrl = parsedOptions.baseUrl || request2.endpoint.DEFAULTS.baseUrl;
   if (GHES_V3_SUFFIX_REGEX.test(baseUrl)) {
     requestOptions.url = baseUrl.replace(GHES_V3_SUFFIX_REGEX, "/api/graphql");
   }
-  return request(requestOptions).then(response => {
+  return request2(requestOptions).then((response) => {
     if (response.data.errors) {
       const headers = {};
       for (const key of Object.keys(response.headers)) {
         headers[key] = response.headers[key];
       }
-      throw new GraphqlResponseError(requestOptions, headers, response.data);
+      throw new GraphqlResponseError(
+        requestOptions,
+        headers,
+        response.data
+      );
     }
     return response.data.data;
   });
 }
 
-function withDefaults(request, newDefaults) {
-  const newRequest = request.defaults(newDefaults);
+// pkg/dist-src/with-defaults.js
+function withDefaults(request2, newDefaults) {
+  const newRequest = request2.defaults(newDefaults);
   const newApi = (query, options) => {
     return graphql(newRequest, query, options);
   };
@@ -3660,9 +3716,10 @@ function withDefaults(request, newDefaults) {
   });
 }
 
-const graphql$1 = withDefaults(request.request, {
+// pkg/dist-src/index.js
+var graphql2 = withDefaults(import_request.request, {
   headers: {
-    "user-agent": `octokit-graphql.js/${VERSION} ${universalUserAgent.getUserAgent()}`
+    "user-agent": `octokit-graphql.js/${VERSION} ${(0, import_universal_user_agent.getUserAgent)()}`
   },
   method: "POST",
   url: "/graphql"
@@ -3673,104 +3730,112 @@ function withCustomRequest(customRequest) {
     url: "/graphql"
   });
 }
-
-exports.GraphqlResponseError = GraphqlResponseError;
-exports.graphql = graphql$1;
-exports.withCustomRequest = withCustomRequest;
-//# sourceMappingURL=index.js.map
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
 
 
 /***/ }),
 
 /***/ 5883:
-/***/ ((__unused_webpack_module, exports) => {
-
-var __webpack_unused_export__;
+/***/ ((module) => {
 
 
-__webpack_unused_export__ = ({ value: true });
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// Todo: Add link to explanation
-const generateMessage = (path, cursorValue) => `The cursor at "${path.join(",")}" did not change its value "${cursorValue}" after a page transition. Please make sure your that your query is set up correctly.`;
+// pkg/dist-src/index.js
+var dist_src_exports = {};
+__export(dist_src_exports, {
+  paginateGraphql: () => paginateGraphql
+});
+module.exports = __toCommonJS(dist_src_exports);
 
-class MissingCursorChange extends Error {
+// pkg/dist-src/errors.js
+var generateMessage = (path, cursorValue) => `The cursor at "${path.join(
+  ","
+)}" did not change its value "${cursorValue}" after a page transition. Please make sure your that your query is set up correctly.`;
+var MissingCursorChange = class extends Error {
   constructor(pageInfo, cursorValue) {
     super(generateMessage(pageInfo.pathInQuery, cursorValue));
     this.pageInfo = pageInfo;
     this.cursorValue = cursorValue;
     this.name = "MissingCursorChangeError";
-
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
     }
   }
-
-}
-
-class MissingPageInfo extends Error {
+};
+var MissingPageInfo = class extends Error {
   constructor(response) {
-    super(`No pageInfo property found in response. Please make sure to specify the pageInfo in your query. Response-Data: ${JSON.stringify(response, null, 2)}`);
+    super(
+      `No pageInfo property found in response. Please make sure to specify the pageInfo in your query. Response-Data: ${JSON.stringify(
+        response,
+        null,
+        2
+      )}`
+    );
     this.response = response;
     this.name = "MissingPageInfo";
-
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
     }
   }
+};
 
-}
-
-const isObject = value => Object.prototype.toString.call(value) === "[object Object]";
-
+// pkg/dist-src/object-helpers.js
+var isObject = (value) => Object.prototype.toString.call(value) === "[object Object]";
 function findPaginatedResourcePath(responseData) {
-  const paginatedResourcePath = deepFindPathToProperty(responseData, "pageInfo");
-
+  const paginatedResourcePath = deepFindPathToProperty(
+    responseData,
+    "pageInfo"
+  );
   if (paginatedResourcePath.length === 0) {
     throw new MissingPageInfo(responseData);
   }
-
   return paginatedResourcePath;
 }
-
-const deepFindPathToProperty = (object, searchProp, path = []) => {
+var deepFindPathToProperty = (object, searchProp, path = []) => {
   for (const key of Object.keys(object)) {
     const currentPath = [...path, key];
     const currentValue = object[key];
-
     if (currentValue.hasOwnProperty(searchProp)) {
       return currentPath;
     }
-
     if (isObject(currentValue)) {
-      const result = deepFindPathToProperty(currentValue, searchProp, currentPath);
-
+      const result = deepFindPathToProperty(
+        currentValue,
+        searchProp,
+        currentPath
+      );
       if (result.length > 0) {
         return result;
       }
     }
   }
-
   return [];
 };
-/**
- * The interfaces of the "get" and "set" functions are equal to those of lodash:
- * https://lodash.com/docs/4.17.15#get
- * https://lodash.com/docs/4.17.15#set
- *
- * They are cut down to our purposes, but could be replaced by the lodash calls
- * if we ever want to have that dependency.
- */
-
-
-const get = (object, path) => {
+var get = (object, path) => {
   return path.reduce((current, nextProperty) => current[nextProperty], object);
 };
-
-const set = (object, path, mutator) => {
+var set = (object, path, mutator) => {
   const lastProperty = path[path.length - 1];
   const parentPath = [...path].slice(0, -1);
   const parent = get(object, parentPath);
-
   if (typeof mutator === "function") {
     parent[lastProperty] = mutator(parent[lastProperty]);
   } else {
@@ -3778,7 +3843,8 @@ const set = (object, path, mutator) => {
   }
 };
 
-const extractPageInfos = responseData => {
+// pkg/dist-src/extract-page-info.js
+var extractPageInfos = (responseData) => {
   const pageInfoPath = findPaginatedResourcePath(responseData);
   return {
     pathInQuery: pageInfoPath,
@@ -3786,91 +3852,85 @@ const extractPageInfos = responseData => {
   };
 };
 
-const isForwardSearch = givenPageInfo => {
+// pkg/dist-src/page-info.js
+var isForwardSearch = (givenPageInfo) => {
   return givenPageInfo.hasOwnProperty("hasNextPage");
 };
+var getCursorFrom = (pageInfo) => isForwardSearch(pageInfo) ? pageInfo.endCursor : pageInfo.startCursor;
+var hasAnotherPage = (pageInfo) => isForwardSearch(pageInfo) ? pageInfo.hasNextPage : pageInfo.hasPreviousPage;
 
-const getCursorFrom = pageInfo => isForwardSearch(pageInfo) ? pageInfo.endCursor : pageInfo.startCursor;
-
-const hasAnotherPage = pageInfo => isForwardSearch(pageInfo) ? pageInfo.hasNextPage : pageInfo.hasPreviousPage;
-
-const createIterator = octokit => {
+// pkg/dist-src/iterator.js
+var createIterator = (octokit) => {
   return (query, initialParameters = {}) => {
     let nextPageExists = true;
-    let parameters = { ...initialParameters
-    };
+    let parameters = { ...initialParameters };
     return {
       [Symbol.asyncIterator]: () => ({
         async next() {
-          if (!nextPageExists) return {
-            done: true,
-            value: {}
-          };
-          const response = await octokit.graphql(query, parameters);
+          if (!nextPageExists)
+            return { done: true, value: {} };
+          const response = await octokit.graphql(
+            query,
+            parameters
+          );
           const pageInfoContext = extractPageInfos(response);
           const nextCursorValue = getCursorFrom(pageInfoContext.pageInfo);
           nextPageExists = hasAnotherPage(pageInfoContext.pageInfo);
-
           if (nextPageExists && nextCursorValue === parameters.cursor) {
             throw new MissingCursorChange(pageInfoContext, nextCursorValue);
           }
-
-          parameters = { ...parameters,
+          parameters = {
+            ...parameters,
             cursor: nextCursorValue
           };
-          return {
-            done: false,
-            value: response
-          };
+          return { done: false, value: response };
         }
-
       })
     };
   };
 };
 
-const mergeResponses = (response1, response2) => {
+// pkg/dist-src/merge-responses.js
+var mergeResponses = (response1, response2) => {
   if (Object.keys(response1).length === 0) {
     return Object.assign(response1, response2);
   }
-
   const path = findPaginatedResourcePath(response1);
   const nodesPath = [...path, "nodes"];
   const newNodes = get(response2, nodesPath);
-
   if (newNodes) {
-    set(response1, nodesPath, values => {
+    set(response1, nodesPath, (values) => {
       return [...values, ...newNodes];
     });
   }
-
   const edgesPath = [...path, "edges"];
   const newEdges = get(response2, edgesPath);
-
   if (newEdges) {
-    set(response1, edgesPath, values => {
+    set(response1, edgesPath, (values) => {
       return [...values, ...newEdges];
     });
   }
-
   const pageInfoPath = [...path, "pageInfo"];
   set(response1, pageInfoPath, get(response2, pageInfoPath));
   return response1;
 };
 
-const createPaginate = octokit => {
+// pkg/dist-src/paginate.js
+var createPaginate = (octokit) => {
   const iterator = createIterator(octokit);
   return async (query, initialParameters = {}) => {
     let mergedResponse = {};
-
-    for await (const response of iterator(query, initialParameters)) {
+    for await (const response of iterator(
+      query,
+      initialParameters
+    )) {
       mergedResponse = mergeResponses(mergedResponse, response);
     }
-
     return mergedResponse;
   };
 };
 
+// pkg/dist-src/index.js
 function paginateGraphql(octokit) {
   octokit.graphql;
   return {
@@ -3881,9 +3941,8 @@ function paginateGraphql(octokit) {
     })
   };
 }
-
-exports.A = paginateGraphql;
-//# sourceMappingURL=index.js.map
+// Annotate the CommonJS export names for ESM import in node:
+0 && (0);
 
 
 /***/ }),
@@ -10788,6 +10847,104 @@ module.exports = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("zlib");
 
 /***/ }),
 
+/***/ 7660:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   "X": () => (/* binding */ ApiWrapper)
+/* harmony export */ });
+class ApiWrapper {
+  #octokit;
+
+  constructor({ octokit }) {
+    this.#octokit = octokit;
+  }
+
+  async createProject({ title, organization, repository }) {
+    const { createProjectV2: { projectV2: { id } } } = await this.#octokit.graphql(`
+      mutation {
+        createProjectV2(
+          input: {
+            #ownerId: "${organization.id}",
+            title: "${title}",
+            repositoryId: "${repository.id}",
+          }
+        ){
+          projectV2 {
+            id
+          }
+        }
+      }`);
+
+    return id;
+  }
+
+  async fetchOrganiztion({ ownerName }) {
+    const { organization } = await this.#octokit.graphql(
+      `
+      query {
+        organization(login: "${ownerName}") {
+          id
+          name
+        }
+      }`,
+      {
+        headers: {
+          'X-Github-Next-Global-ID': '1',
+        },
+      },
+    );
+
+    return organization;
+  }
+
+  async fetchRepository({ ownerName, repositoryName }) {
+    // max limit for `first` is 100
+    // https://docs.github.com/en/graphql/overview/resource-limitations
+    const response = await this.#octokit.graphql.paginate(`
+      query paginate($cursor: String) {
+        repository(#owner: "${ownerName}", name: "${repositoryName}") {
+          name
+          id
+          projectsV2(first: 100, after: $cursor) {
+            nodes {
+              id
+              title
+            }
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+          }
+        }
+      }`);
+    return response.repository;
+  }
+
+  async deleteProject({ project, clientMutationId }) {
+    const { projectId: id } = await this.#octokit.graphql(`
+      mutation{
+        deleteProjectV2(
+          input: {
+            clientMutationId: "${clientMutationId}"
+            projectId: "${project.id}",
+          }
+        ){
+          projectV2 {
+            id
+          }
+        }
+      }`);
+
+    return id;
+  }
+}
+
+ // eslint-disable-line import/prefer-default-export
+
+
+/***/ }),
+
 /***/ 1378:
 /***/ ((__webpack_module__, __unused_webpack___webpack_exports__, __nccwpck_require__) => {
 
@@ -10796,7 +10953,8 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5438);
 /* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(6762);
 /* harmony import */ var _octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(5883);
-/* harmony import */ var _projects_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(2621);
+/* harmony import */ var _apiwrapper_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(7660);
+/* harmony import */ var _projects_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(2621);
 
 
 
@@ -10804,8 +10962,9 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
  // eslint-disable-line import/extensions
+ // eslint-disable-line import/extensions
 
-const GraphQlOctokit = _octokit_core__WEBPACK_IMPORTED_MODULE_2__/* .Octokit.plugin */ .v.plugin(_octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_3__/* .paginateGraphql */ .A);
+const GraphQlOctokit = _octokit_core__WEBPACK_IMPORTED_MODULE_2__.Octokit.plugin(_octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_3__.paginateGraphql);
 
 // https://github.com/octokit/authentication-strategies.js
 // example: https://github.com/octokit/graphql.js/issues/61#issuecomment-542399763
@@ -10825,15 +10984,17 @@ try {
     },
   } = _actions_github__WEBPACK_IMPORTED_MODULE_1__;
 
-  const rpm = new _projects_js__WEBPACK_IMPORTED_MODULE_4__/* .RepositoryProjectsManager */ .n({
-    owner: repository.owner.login,
-    repository: repository.name,
-    octokit,
+  const apiWrapper = new _apiwrapper_js__WEBPACK_IMPORTED_MODULE_4__/* .ApiWrapper */ .X({ octokit });
+
+  const rpm = new _projects_js__WEBPACK_IMPORTED_MODULE_5__/* .RepositoryProjectsManager */ .n({
+    ownerName: repository.owner.login,
+    repositoryName: repository.name,
+    apiWrapper,
   });
 
   await rpm.sync(titles);
 
-  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('project-titles', rpm.projects.map((p) => p.title).join(' '));
+  _actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput('project-titles', rpm.projects().map((p) => p.title).join(' '));
 } catch (error) {
   _actions_core__WEBPACK_IMPORTED_MODULE_0__.setFailed(error.message);
 }
@@ -10850,15 +11011,29 @@ __webpack_async_result__();
 /* harmony export */   "n": () => (/* binding */ RepositoryProjectsManager)
 /* harmony export */ });
 class RepositoryProjectsManager {
-  constructor({ owner, repository, octokit }) {
-    this.owner = owner;
-    this.repositoryName = repository;
-    this.octokit = octokit;
+  #apiWrapper;
+
+  #clientMutationId;
+
+  #organization;
+
+  #ownerName;
+
+  #projects;
+
+  #repository;
+
+  #repositoryName;
+
+  constructor({ apiWrapper, ownerName, repositoryName }) {
+    this.#apiWrapper = apiWrapper;
+    this.#ownerName = ownerName;
+    this.#repositoryName = repositoryName;
 
     // the value of this string is not documented other than:
     // "A unique identifier for the client performing the mutation."
     // https://docs.github.com/en/graphql/reference/mutations
-    this.clientMutationId = `sync-repository-projects-${owner}-${repository}`;
+    this.#clientMutationId = `sync-repository-projects-${this.#ownerName}-${this.#repositoryName}`;
   }
 
   async sync(titles) {
@@ -10867,109 +11042,55 @@ class RepositoryProjectsManager {
     await this.#createMissingProjectsFrom(titles);
     await this.#deleteProjectsNotGivenBy(titles);
 
-    await this.#fetchRepositoryAndProjects(); // refresh local
+    // refersh local
+    this.#repository = await this.#apiWrapper.fetchRepository({
+      ownerName: this.#ownerName,
+      repositoryName: this.#repositoryName,
+    });
+    this.#projects = this.#repository.projectsV2.nodes;
+  }
+
+  projects() {
+    return this.#projects;
   }
 
   async #init() {
     // the GitHub Action's event can contain the "old" GraphQL node id.
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
-    const { organization } = await this.octokit.graphql(
-      `
-      query {
-        organization(login: "${this.owner}") {
-          id
-          name
-        }
-      }`,
-      {
-        headers: {
-          'X-Github-Next-Global-ID': '1',
-        },
-      },
-    );
-    this.organization = organization;
+    this.#organization = this.#apiWrapper.fetchOrganiztion({ ownerName: this.#ownerName });
 
-    await this.#fetchRepositoryAndProjects();
-  }
-
-  async #fetchRepositoryAndProjects() {
-    // max limit for `first` is 100
-    // https://docs.github.com/en/graphql/overview/resource-limitations
-    const response = await this.octokit.graphql.paginate(`
-      query paginate($cursor: String) {
-        repository(owner: "${this.owner}", name: "${this.repositoryName}") {
-          name
-          id
-          projectsV2(first: 100, after: $cursor) {
-            nodes {
-              id
-              title
-            }
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-          }
-        }
-      }`);
-    this.repository = response.repository;
-    this.projects = response.repository.projectsV2.nodes;
+    this.#repository = await this.#apiWrapper.fetchRepository({
+      ownerName: this.#ownerName,
+      repositoryName: this.#repositoryName,
+    });
+    this.#projects = this.#repository.projectsV2.nodes;
   }
 
   async #createMissingProjectsFrom(titles) {
-    const titlesToCreate = titles.filter((title) => !this.projects.map((p) => p.title)
+    const titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
       .includes(title));
 
     for await (const title of titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
-      await this.#createProject(title);
+      await this.#apiWrapper.createProject({
+        title,
+        organization: this.#organization,
+        repository: this.#repository,
+      });
     }
   }
 
   async #deleteProjectsNotGivenBy(titles) {
-    const projectsToDelete = this.projects.filter((p) => !titles.includes(p.title));
+    const projectsToDelete = this.#projects.filter((p) => !titles.includes(p.title));
 
     for await (const project of projectsToDelete) {
-      await this.#deleteProject(project); // more than 5 breaks API endpoint
+      // more than 5 breaks API endpoint
+      await this.#apiWrapper.deleteProject({
+        project,
+        clientMutationId: this.#clientMutationId,
+      });
     }
-  }
-
-  async #createProject(title) {
-    const { createProjectV2: { projectV2: { id } } } = await this.octokit.graphql(`
-      mutation{
-        createProjectV2(
-          input: {
-            ownerId: "${this.organization.id}",
-            title: "${title}",
-            repositoryId: "${this.repository.id}",
-          }
-        ){
-          projectV2 {
-            id
-          }
-        }
-      }`);
-
-    return id;
-  }
-
-  async #deleteProject(project) {
-    const { projectId: id } = await this.octokit.graphql(`
-      mutation{
-        deleteProjectV2(
-          input: {
-            clientMutationId: "${this.clientMutationId}"
-            projectId: "${project.id}",
-          }
-        ){
-          projectV2 {
-            id
-          }
-        }
-      }`);
-
-    return id;
   }
 }
 

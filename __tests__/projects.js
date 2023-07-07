@@ -1,77 +1,56 @@
-import nock from 'nock'; // https://github.com/nock/nock
+import { jest } from '@jest/globals'; // eslint-disable-line import/no-extraneous-dependencies
 
-import { Octokit } from '@octokit/core';
-import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
+import { ApiWrapper } from '../apiwrapper';
 import { RepositoryProjectsManager } from '../projects.js'; // eslint-disable-line import/extensions
 
-const GraphQlOctokit = Octokit.plugin(paginateGraphql);
-const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use default GITHUB_TOKEN token from env
-
-const rpm = new RepositoryProjectsManager({
-  owner: 'acme',
-  repository: 'example-repository',
-  octokit,
-});
-
 describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
+  let rpm;
+
   beforeEach(() => {
-    nock.restore();
-    nock.activate();
-  });
+    const apiWrapper = new ApiWrapper({ octokit: null });
 
-  afterEach(() => {
-    nock.restore();
-  });
-
-  test('when no change is required', async () => {
-    const titles = [
-      'layer-200/module-1',
-      'layer-100/module-2',
-    ];
-
-    nock('https://api.github.com')
-      .post('/graphql', (body) => /.*organization.login:.*/.test(body.query))
-      .reply(200, {
-        data: {
-          organization: {
-            id: 'O_0000000001',
-            name: 'ACME Corporation',
-          },
+    jest.spyOn(apiWrapper, 'fetchOrganiztion')
+      .mockImplementation(() => ({
+        organization: {
+          id: 'O_0000000001',
+          name: 'Babbel Sandbox',
         },
-      })
-      .post('/graphql', (body) => /projectsV2.first:/.test(body.query))
-      .twice()
-      .reply(
-        200,
-        {
-          data: {
-            repository: {
-              name: 'example-repository',
-              id: 'R_0000000001',
-              projectsV2: {
-                nodes: [
-                  {
-                    id: 'PVT_kwDOAnsQgs4AP9Qq',
-                    title: 'layer-200/module-1',
-                  },
-                  {
-                    id: 'PVT_000000000000002',
-                    title: 'layer-100/module-2',
-                  },
-                ],
-                pageInfo: {
-                  hasNextPage: false,
-                  endCursor: 'Nw',
-                },
-              },
+      }));
+
+    jest.spyOn(apiWrapper, 'fetchRepository')
+      .mockImplementationOnce(() => ({
+        name: 'example-repository',
+        id: 'R_0000000001',
+        projectsV2: {
+          nodes: [
+            {
+              id: 'PVT_000000000000002',
+              title: 'layer-100/module-2',
             },
-          },
+          ],
         },
-      );
+      }))
+      .mockImplementationOnce(() => ({
+        name: 'example-repository',
+        id: 'R_0000000001',
+        projectsV2: {
+          nodes: [
+            {
+              id: 'PVT_000000000000001',
+              title: 'layer-200/module-1',
+            },
+            {
+              id: 'PVT_000000000000002',
+              title: 'layer-100/module-2',
+            },
+          ],
+        },
+      }));
 
-    await rpm.sync(titles);
-    const outputTitles = rpm.projects.map((p) => p.title);
-    expect(outputTitles).toEqual(titles);
+    jest.spyOn(apiWrapper, 'createProject')
+      .mockImplementation(() => ('PVT_0000000000000001'));
+
+    rpm = new RepositoryProjectsManager({ apiWrapper, ownerName: 'acme', repositoryName: 'example-repository' });
   });
 
   test('when one project is missing', async () => {
@@ -80,84 +59,8 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
       'layer-100/module-2',
     ];
 
-    nock('https://api.github.com')
-      .post('/graphql', (body) => /organization.login:/.test(body.query))
-      .reply(200, {
-        data: {
-          organization: {
-            id: 'O_0000000001',
-            name: 'Babbel Sandbox',
-          },
-        },
-      })
-      .post('/graphql', (body) => /projectsV2.first:/.test(body.query))
-      .reply(
-        200,
-        {
-          data: {
-            repository: {
-              name: 'example-repository',
-              id: 'R_0000000001',
-              projectsV2: {
-                nodes: [
-                  {
-                    id: 'PVT_000000000000002',
-                    title: 'layer-100/module-2',
-                  },
-                ],
-                pageInfo: {
-                  hasNextPage: false,
-                  endCursor: 'Mq',
-                },
-              },
-            },
-          },
-        },
-      )
-      .post('/graphql', (body) => /createProjectV2/.test(body.query))
-      .reply(
-        200,
-        {
-          data: {
-            createProjectV2: {
-              projectV2: {
-                id: 'PVT_0000000000000001',
-              },
-            },
-          },
-        },
-      )
-      .post('/graphql', (body) => /projectsV2.first:/.test(body.query))
-      .reply(
-        200,
-        {
-          data: {
-            repository: {
-              name: 'example-repository',
-              id: 'R_0000000001',
-              projectsV2: {
-                nodes: [
-                  {
-                    id: 'PVT_0000000000000001',
-                    title: 'layer-200/module-1',
-                  },
-                  {
-                    id: 'PVT_000000000000002',
-                    title: 'layer-100/module-2',
-                  },
-                ],
-                pageInfo: {
-                  hasNextPage: false,
-                  endCursor: 'Mq',
-                },
-              },
-            },
-          },
-        },
-      );
-
     await rpm.sync(titles);
-    const outputTitles = rpm.projects.map((p) => p.title);
+    const outputTitles = rpm.projects().map((p) => p.title);
     expect(outputTitles).toEqual(titles);
   });
 });

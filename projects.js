@@ -1,13 +1,27 @@
 class RepositoryProjectsManager {
-  constructor({ owner, repository, octokit }) {
-    this.owner = owner;
-    this.repositoryName = repository;
-    this.octokit = octokit;
+  #apiWrapper;
+
+  #clientMutationId;
+
+  #organization;
+
+  #ownerName;
+
+  #projects;
+
+  #repository;
+
+  #repositoryName;
+
+  constructor({ apiWrapper, ownerName, repositoryName }) {
+    this.#apiWrapper = apiWrapper;
+    this.#ownerName = ownerName;
+    this.#repositoryName = repositoryName;
 
     // the value of this string is not documented other than:
     // "A unique identifier for the client performing the mutation."
     // https://docs.github.com/en/graphql/reference/mutations
-    this.clientMutationId = `sync-repository-projects-${owner}-${repository}`;
+    this.#clientMutationId = `sync-repository-projects-${this.#ownerName}-${this.#repositoryName}`;
   }
 
   async sync(titles) {
@@ -16,109 +30,55 @@ class RepositoryProjectsManager {
     await this.#createMissingProjectsFrom(titles);
     await this.#deleteProjectsNotGivenBy(titles);
 
-    await this.#fetchRepositoryAndProjects(); // refresh local
+    // refersh local
+    this.#repository = await this.#apiWrapper.fetchRepository({
+      ownerName: this.#ownerName,
+      repositoryName: this.#repositoryName,
+    });
+    this.#projects = this.#repository.projectsV2.nodes;
+  }
+
+  projects() {
+    return this.#projects;
   }
 
   async #init() {
     // the GitHub Action's event can contain the "old" GraphQL node id.
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
-    const { organization } = await this.octokit.graphql(
-      `
-      query {
-        organization(login: "${this.owner}") {
-          id
-          name
-        }
-      }`,
-      {
-        headers: {
-          'X-Github-Next-Global-ID': '1',
-        },
-      },
-    );
-    this.organization = organization;
+    this.#organization = await this.#apiWrapper.fetchOrganiztion({ ownerName: this.#ownerName });
 
-    await this.#fetchRepositoryAndProjects();
-  }
-
-  async #fetchRepositoryAndProjects() {
-    // max limit for `first` is 100
-    // https://docs.github.com/en/graphql/overview/resource-limitations
-    const response = await this.octokit.graphql.paginate(`
-      query paginate($cursor: String) {
-        repository(owner: "${this.owner}", name: "${this.repositoryName}") {
-          name
-          id
-          projectsV2(first: 100, after: $cursor) {
-            nodes {
-              id
-              title
-            }
-            pageInfo {
-              hasNextPage
-              endCursor
-            }
-          }
-        }
-      }`);
-    this.repository = response.repository;
-    this.projects = response.repository.projectsV2.nodes;
+    this.#repository = await this.#apiWrapper.fetchRepository({
+      ownerName: this.#ownerName,
+      repositoryName: this.#repositoryName,
+    });
+    this.#projects = this.#repository.projectsV2.nodes;
   }
 
   async #createMissingProjectsFrom(titles) {
-    const titlesToCreate = titles.filter((title) => !this.projects.map((p) => p.title)
+    const titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
       .includes(title));
 
     for await (const title of titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
-      await this.#createProject(title);
+      await this.#apiWrapper.createProject({
+        title,
+        organization: this.#organization,
+        repository: this.#repository,
+      });
     }
   }
 
   async #deleteProjectsNotGivenBy(titles) {
-    const projectsToDelete = this.projects.filter((p) => !titles.includes(p.title));
+    const projectsToDelete = this.#projects.filter((p) => !titles.includes(p.title));
 
     for await (const project of projectsToDelete) {
-      await this.#deleteProject(project); // more than 5 breaks API endpoint
+      // more than 5 breaks API endpoint
+      await this.#apiWrapper.deleteProject({
+        project,
+        clientMutationId: this.#clientMutationId,
+      });
     }
-  }
-
-  async #createProject(title) {
-    const { createProjectV2: { projectV2: { id } } } = await this.octokit.graphql(`
-      mutation{
-        createProjectV2(
-          input: {
-            ownerId: "${this.organization.id}",
-            title: "${title}",
-            repositoryId: "${this.repository.id}",
-          }
-        ){
-          projectV2 {
-            id
-          }
-        }
-      }`);
-
-    return id;
-  }
-
-  async #deleteProject(project) {
-    const { projectId: id } = await this.octokit.graphql(`
-      mutation{
-        deleteProjectV2(
-          input: {
-            clientMutationId: "${this.clientMutationId}"
-            projectId: "${project.id}",
-          }
-        ){
-          projectV2 {
-            id
-          }
-        }
-      }`);
-
-    return id;
   }
 }
 

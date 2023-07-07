@@ -10,7 +10,7 @@ class ApiWrapper {
       mutation {
         createProjectV2(
           input: {
-            #ownerId: "${organization.id}",
+            ownerId: "${organization.id}",
             title: "${title}",
             repositoryId: "${repository.id}",
           }
@@ -48,7 +48,7 @@ class ApiWrapper {
     // https://docs.github.com/en/graphql/overview/resource-limitations
     const response = await this.#octokit.graphql.paginate(`
       query paginate($cursor: String) {
-        repository(#owner: "${ownerName}", name: "${repositoryName}") {
+        repository(owner: "${ownerName}", name: "${repositoryName}") {
           name
           id
           projectsV2(first: 100, after: $cursor) {

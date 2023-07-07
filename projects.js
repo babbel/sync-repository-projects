@@ -46,7 +46,7 @@ class RepositoryProjectsManager {
     // the GitHub Action's event can contain the "old" GraphQL node id.
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
-    this.#organization = this.#apiWrapper.fetchOrganiztion({ ownerName: this.#ownerName });
+    this.#organization = await this.#apiWrapper.fetchOrganiztion({ ownerName: this.#ownerName });
 
     this.#repository = await this.#apiWrapper.fetchRepository({
       ownerName: this.#ownerName,

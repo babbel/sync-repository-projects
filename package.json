@@ -25,7 +25,7 @@
     "@octokit/core": "*",
     "@octokit/graphql": "*",
     "@octokit/plugin-paginate-graphql": "*",
-    "fetch-mock": "^9.11.0"
+    "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1"
   },
   "devDependencies": {
     "@vercel/ncc": "*",

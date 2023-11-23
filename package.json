@@ -20,8 +20,8 @@
     "projects"
   ],
   "dependencies": {
-    "@actions/core": "^1.10.1",
-    "@actions/github": "^5.1.1",
+    "@actions/core": "*",
+    "@actions/github": "*",
     "@octokit/core": "*",
     "@octokit/graphql": "*",
     "@octokit/plugin-paginate-graphql": "*",

@@ -24,14 +24,14 @@
     "@actions/github": "*",
     "@octokit/core": "*",
     "@octokit/graphql": "*",
-    "@octokit/plugin-paginate-graphql": "*",
-    "fetch-mock": "npm:@gr2m/fetch-mock@9.11.0-pull-request-644.1"
+    "@octokit/plugin-paginate-graphql": "*"
   },
   "devDependencies": {
     "@vercel/ncc": "*",
     "eslint": "*",
     "eslint-config-airbnb-base": "*",
     "eslint-plugin-import": "*",
+    "msw": "^2.0.8",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1"
   },

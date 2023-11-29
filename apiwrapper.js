@@ -27,7 +27,8 @@ class ApiWrapper {
   async fetchOrganiztion({ ownerName }) {
     const { organization } = await this.#octokit.graphql(
       `
-      query fetchOrgainzation { organization(login: "${ownerName}") {
+      query fetchOrgainzation {
+        organization(login: "${ownerName}") {
           id
           name
         }

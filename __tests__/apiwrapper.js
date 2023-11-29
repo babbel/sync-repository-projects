@@ -12,6 +12,16 @@ const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use d
 const apiWrapper = new ApiWrapper({ octokit });
 
 const server = setupServer(); // https://mswjs.io/docs/api/setup-server/
+const mock = ({ action, matcher, data }) => {
+  const actions = {
+    mutation: graphql.mutation,
+    query: graphql.query,
+  };
+
+  server.use(
+    actions[action](matcher, () => HttpResponse.json({ data })),
+  );
+};
 
 describe('ApiWrapper', () => {
   beforeAll(() => {
@@ -30,9 +40,7 @@ describe('ApiWrapper', () => {
     const data = { createProjectV2: { projectV2: { id: 'PVT_000000000000002' } } };
 
     beforeEach(() => {
-      server.use(
-        graphql.mutation(/createProject/, () => HttpResponse.json({ data })),
-      );
+      mock({ action: 'mutation', matcher: /createProject/, data });
     });
 
     const input = {
@@ -50,10 +58,8 @@ describe('ApiWrapper', () => {
   describe('.fetchOrganiztion()', () => {
     const data = { organization: { id: 'O_0000000001' } };
 
-    beforeAll(() => {
-      server.use(
-        graphql.query(/fetchOrgainzation/, () => HttpResponse.json({ data })),
-      );
+    beforeEach(() => {
+      mock({ action: 'query', matcher: /fetchOrgainzation/, data });
     });
 
     test('returns object containing id', async () => {
@@ -86,10 +92,8 @@ describe('ApiWrapper', () => {
       },
     };
 
-    beforeAll(() => {
-      server.use(
-        graphql.query(/paginate/, () => HttpResponse.json({ data })),
-      );
+    beforeEach(() => {
+      mock({ action: 'query', matcher: /paginate/, data });
     });
 
     const input = {
@@ -106,10 +110,8 @@ describe('ApiWrapper', () => {
   describe('.deleteProject()', () => {
     const data = { projectId: 'PVT_000000000000001' };
 
-    beforeAll(() => {
-      server.use(
-        graphql.mutation(/deleteProject/, () => HttpResponse.json({ data })),
-      );
+    beforeEach(() => {
+      mock({ action: 'mutation', matcher: /deleteProject/, data });
     });
 
     const input = {

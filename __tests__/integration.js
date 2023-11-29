@@ -14,11 +14,11 @@ const apiWrapper = new ApiWrapper({ octokit });
 
 const rpm = new RepositoryProjectsManager({ apiWrapper, ownerName: 'acme', repositoryName: 'example-repository' });
 
-let server; // MSW mock server
+const server = setupServer(); // MSW mock server
 
 describe('RepositoryProjectsManager integration test', () => {
   beforeAll(() => {
-    server = setupServer(
+    server.use(
       graphql.query(/fetchOrgainzation/, () => HttpResponse.json({
         data: {
           organization: {

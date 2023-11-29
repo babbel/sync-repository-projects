@@ -11,21 +11,28 @@ const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use d
 
 const apiWrapper = new ApiWrapper({ octokit });
 
-let server; // MSW mock server
+const server = setupServer(); // https://mswjs.io/docs/api/setup-server/
 
 describe('ApiWrapper', () => {
-  afterEach(() => {
+  beforeAll(() => {
+    server.listen();
+  });
+
+  afterAll(() => {
     server.close();
+  });
+
+  afterEach(() => {
+    server.resetHandlers();
   });
 
   describe('.createProject()', () => {
     const data = { createProjectV2: { projectV2: { id: 'PVT_000000000000002' } } };
 
-    beforeAll(() => {
-      server = setupServer(
+    beforeEach(() => {
+      server.use(
         graphql.mutation(/createProject/, () => HttpResponse.json({ data })),
       );
-      server.listen();
     });
 
     const input = {
@@ -44,10 +51,9 @@ describe('ApiWrapper', () => {
     const data = { organization: { id: 'O_0000000001' } };
 
     beforeAll(() => {
-      server = setupServer(
+      server.use(
         graphql.query(/fetchOrgainzation/, () => HttpResponse.json({ data })),
       );
-      server.listen();
     });
 
     test('returns object containing id', async () => {
@@ -81,10 +87,9 @@ describe('ApiWrapper', () => {
     };
 
     beforeAll(() => {
-      server = setupServer(
+      server.use(
         graphql.query(/paginate/, () => HttpResponse.json({ data })),
       );
-      server.listen();
     });
 
     const input = {
@@ -102,10 +107,9 @@ describe('ApiWrapper', () => {
     const data = { projectId: 'PVT_000000000000001' };
 
     beforeAll(() => {
-      server = setupServer(
+      server.use(
         graphql.mutation(/deleteProject/, () => HttpResponse.json({ data })),
       );
-      server.listen();
     });
 
     const input = {

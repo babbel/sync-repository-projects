@@ -18,6 +18,10 @@ const server = setupServer(); // MSW mock server
 
 describe('RepositoryProjectsManager integration test', () => {
   beforeAll(() => {
+    server.listen();
+  });
+
+  beforeEach(() => {
     server.use(
       graphql.query(/fetchOrgainzation/, () => HttpResponse.json({
         data: {
@@ -76,7 +80,6 @@ describe('RepositoryProjectsManager integration test', () => {
         },
       })),
     );
-    server.listen();
   });
 
   afterAll(() => {

@@ -1,7 +1,9 @@
 import { Octokit } from '@octokit/core';
-import fetchMock from 'fetch-mock'; // https://github.com/wheresrhys/fetch-mock
-
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
+
+import { graphql, HttpResponse } from 'msw'; // https://mswjs.io/docs/getting-started/mocks/graphql-api
+import { setupServer } from 'msw/node'; // https://mswjs.io/docs/getting-started/integrate/node
+
 import { ApiWrapper } from '../apiwrapper';
 
 const GraphQlOctokit = Octokit.plugin(paginateGraphql);
@@ -9,44 +11,56 @@ const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use d
 
 const apiWrapper = new ApiWrapper({ octokit });
 
-const mockResponse = (name, data) => {
-  fetchMock.postOnce({
-    name,
-    matcher: 'https://api.github.com/graphql',
-    response: {
-      status: 200,
-      body: { data },
-    },
-  });
+const server = setupServer(); // https://mswjs.io/docs/api/setup-server/
+const mock = ({ action, matcher, data }) => {
+  const actions = {
+    mutation: graphql.mutation,
+    query: graphql.query,
+  };
+
+  server.use(
+    actions[action](matcher, () => HttpResponse.json({ data })),
+  );
 };
 
 describe('ApiWrapper', () => {
+  beforeAll(() => {
+    server.listen();
+  });
+
   afterAll(() => {
-    fetchMock.reset();
+    server.close();
+  });
+
+  afterEach(() => {
+    server.resetHandlers();
   });
 
   describe('.createProject()', () => {
     const data = { createProjectV2: { projectV2: { id: 'PVT_000000000000002' } } };
+
+    beforeEach(() => {
+      mock({ action: 'mutation', matcher: /createProject/, data });
+    });
+
     const input = {
       title: 'example-project-title',
       organization: { id: 'O_0000000001' },
       repository: { id: 'R_0000000001' },
     };
 
-    beforeEach(() => { mockResponse('createProject', data); });
-    afterEach(() => { fetchMock.reset(); });
-
     test('returns id', async () => {
-      const id = await apiWrapper.fetchOrganiztion(input);
-      expect(id).toEqual(data.id);
+      const id = await apiWrapper.createProject(input);
+      expect(id).toEqual(data.createProjectV2.projectV2.id);
     });
   });
 
   describe('.fetchOrganiztion()', () => {
     const data = { organization: { id: 'O_0000000001' } };
 
-    beforeEach(() => { mockResponse('fetchOrganiztion', data); });
-    afterEach(() => { fetchMock.reset(); });
+    beforeEach(() => {
+      mock({ action: 'query', matcher: /fetchOrgainzation/, data });
+    });
 
     test('returns object containing id', async () => {
       const { id } = await apiWrapper.fetchOrganiztion({ owner: 'acme' });
@@ -78,13 +92,14 @@ describe('ApiWrapper', () => {
       },
     };
 
+    beforeEach(() => {
+      mock({ action: 'query', matcher: /paginate/, data });
+    });
+
     const input = {
       ownerName: 'acme',
       repositoryName: 'example-repository-name',
     };
-
-    beforeEach(() => { mockResponse('fetchRepository', data); });
-    afterEach(() => { fetchMock.reset(); });
 
     test('returns object containing id', async () => {
       const repository = await apiWrapper.fetchRepository(input);
@@ -95,13 +110,14 @@ describe('ApiWrapper', () => {
   describe('.deleteProject()', () => {
     const data = { projectId: 'PVT_000000000000001' };
 
+    beforeEach(() => {
+      mock({ action: 'mutation', matcher: /deleteProject/, data });
+    });
+
     const input = {
       project: { id: 'PVT_000000000000001' },
       clientMutationId: 'example-client-mutation-id',
     };
-
-    beforeEach(() => { mockResponse('deleteProject', data); });
-    afterEach(() => { fetchMock.reset(); });
 
     test('returns object containing id', async () => {
       const id = await apiWrapper.deleteProject(input);

@@ -1,7 +1,9 @@
-import fetchMock from 'fetch-mock'; // https://github.com/wheresrhys/fetch-mock
-
 import { Octokit } from '@octokit/core';
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
+
+import { graphql, HttpResponse } from 'msw'; // https://mswjs.io/docs/getting-started/mocks/graphql-api
+import { setupServer } from 'msw/node'; // https://mswjs.io/docs/getting-started/integrate/node
+
 import { ApiWrapper } from '../apiwrapper';
 import { RepositoryProjectsManager } from '../projects.js'; // eslint-disable-line import/extensions
 
@@ -12,94 +14,76 @@ const apiWrapper = new ApiWrapper({ octokit });
 
 const rpm = new RepositoryProjectsManager({ apiWrapper, ownerName: 'acme', repositoryName: 'example-repository' });
 
+const server = setupServer(); // MSW mock server
+
 describe('RepositoryProjectsManager integration test', () => {
-  afterAll(() => {
-    fetchMock.reset();
+  beforeAll(() => {
+    server.listen();
   });
 
   beforeEach(() => {
-    fetchMock
-      .postOnce({
-        name: '1',
-        matcher: 'https://api.github.com/graphql',
-        response: {
-          status: 200,
-          body: {
-            data: {
-              organization: {
-                id: 'O_0000000001',
-                name: 'ACME Corporation',
-              },
-            },
+    server.use(
+      graphql.query(/fetchOrgainzation/, () => HttpResponse.json({
+        data: {
+          organization: {
+            id: 'O_0000000001',
+            name: 'ACME Corporation',
           },
         },
-      })
-      .postOnce({
-        name: '2',
-        matcher: 'https://api.github.com/graphql',
-        response: {
-          status: 200,
-          body: {
-            data: {
-              repository: {
-                name: 'example-repository',
-                id: 'R_0000000001',
-                projectsV2: {
-                  nodes: [
-                    {
-                      id: 'PVT_kwDOAnsQgs4AP9Qq',
-                      title: 'layer-200/module-1',
-                    },
-                    {
-                      id: 'PVT_000000000000002',
-                      title: 'layer-100/module-2',
-                    },
-                  ],
-                  pageInfo: {
-                    hasNextPage: false,
-                    endCursor: 'Nw',
-                  },
+      })),
+      graphql.query(/paginate/, () => HttpResponse.json({
+        data: {
+          repository: {
+            name: 'example-repository',
+            id: 'R_0000000001',
+            projectsV2: {
+              nodes: [
+                {
+                  id: 'PVT_kwDOAnsQgs4AP9Qq',
+                  title: 'layer-200/module-1',
                 },
-              },
-            },
-          },
-        },
-      })
-      .postOnce({
-        name: '3',
-        matcher: 'https://api.github.com/graphql',
-        response: {
-          status: 200,
-          body: {
-            data: {
-              repository: {
-                name: 'example-repository',
-                id: 'R_0000000001',
-                projectsV2: {
-                  nodes: [
-                    {
-                      id: 'PVT_kwDOAnsQgs4AP9Qq',
-                      title: 'layer-200/module-1',
-                    },
-                    {
-                      id: 'PVT_000000000000002',
-                      title: 'layer-100/module-2',
-                    },
-                  ],
-                  pageInfo: {
-                    hasNextPage: false,
-                    endCursor: 'Nw',
-                  },
+                {
+                  id: 'PVT_000000000000002',
+                  title: 'layer-100/module-2',
                 },
+              ],
+              pageInfo: {
+                hasNextPage: false,
+                endCursor: 'Nw',
               },
             },
           },
         },
-      });
+      })),
+      graphql.query(/paginate/, () => HttpResponse.json({
+        data: {
+          repository: {
+            name: 'example-repository',
+            id: 'R_0000000001',
+            projectsV2: {
+              nodes: [
+                {
+                  id: 'PVT_kwDOAnsQgs4AP9Qq',
+                  title: 'layer-200/module-1',
+                },
+                {
+                  id: 'PVT_000000000000002',
+                  title: 'layer-100/module-2',
+                },
+              ],
+              pageInfo: {
+                hasNextPage: false,
+                endCursor: 'Nw',
+              },
+            },
+          },
+        },
+      })),
+    );
   });
 
-  afterEach(() => {
-    fetchMock.reset();
+  afterAll(() => {
+    server.close();
   });
 
   test('when no change is required', async () => {

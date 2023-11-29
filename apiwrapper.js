@@ -7,7 +7,7 @@ class ApiWrapper {
 
   async createProject({ title, organization, repository }) {
     const { createProjectV2: { projectV2: { id } } } = await this.#octokit.graphql(`
-      mutation {
+      mutation createProject {
         createProjectV2(
           input: {
             ownerId: "${organization.id}",
@@ -27,7 +27,7 @@ class ApiWrapper {
   async fetchOrganiztion({ ownerName }) {
     const { organization } = await this.#octokit.graphql(
       `
-      query {
+      query fetchOrgainzation {
         organization(login: "${ownerName}") {
           id
           name
@@ -68,7 +68,7 @@ class ApiWrapper {
 
   async deleteProject({ project, clientMutationId }) {
     const { projectId: id } = await this.#octokit.graphql(`
-      mutation{
+      mutation deleteProject {
         deleteProjectV2(
           input: {
             clientMutationId: "${clientMutationId}"

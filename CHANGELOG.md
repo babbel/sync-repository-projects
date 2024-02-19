@@ -1,3 +1,7 @@
+## [1.0.3] - 2024-02-29
+
+- undici dependency: security release
+
 ## [1.0.2] - 2023-11-23
 
 - Update node.js to v20

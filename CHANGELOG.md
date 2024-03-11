@@ -1,3 +1,8 @@
+# NOTE: CHANGELOG.md is deprecated
+
+After the release of v1.0.3, please see the [GitHub release notes](https://github.com/babbel/sync-repository-projects/releases)
+for the action in order to view the most up-to-date changes.
+
 ## [1.0.3] - 2024-02-29
 
 - undici dependency: security release

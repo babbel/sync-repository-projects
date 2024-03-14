@@ -1,7 +1,7 @@
 import core from '@actions/core';
 import github from '@actions/github';
 
-import { Octokit } from '@octokit/core';
+import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
 
 import { ApiWrapper } from './apiwrapper.js'; // eslint-disable-line import/extensions

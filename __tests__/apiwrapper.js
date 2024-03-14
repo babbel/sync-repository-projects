@@ -1,4 +1,4 @@
-import { Octokit } from '@octokit/core';
+import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
 import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
 
 import { graphql, HttpResponse } from 'msw'; // https://mswjs.io/docs/getting-started/mocks/graphql-api

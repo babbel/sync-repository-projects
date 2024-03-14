@@ -1,12 +1,12 @@
 import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
-import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
+import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
 
 import { graphql, HttpResponse } from 'msw'; // https://mswjs.io/docs/getting-started/mocks/graphql-api
 import { setupServer } from 'msw/node'; // https://mswjs.io/docs/getting-started/integrate/node
 
 import { ApiWrapper } from '../apiwrapper';
 
-const GraphQlOctokit = Octokit.plugin(paginateGraphql);
+const GraphQlOctokit = Octokit.plugin(paginateGraphQL);
 const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use default GITHUB_TOKEN token from env
 
 const apiWrapper = new ApiWrapper({ octokit });

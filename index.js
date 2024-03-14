@@ -2,12 +2,12 @@ import core from '@actions/core';
 import github from '@actions/github';
 
 import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
-import { paginateGraphql } from '@octokit/plugin-paginate-graphql';
+import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
 
 import { ApiWrapper } from './apiwrapper.js'; // eslint-disable-line import/extensions
 import { RepositoryProjectsManager } from './projects.js'; // eslint-disable-line import/extensions
 
-const GraphQlOctokit = Octokit.plugin(paginateGraphql);
+const GraphQlOctokit = Octokit.plugin(paginateGraphQL);
 
 // https://github.com/octokit/authentication-strategies.js
 // example: https://github.com/octokit/graphql.js/issues/61#issuecomment-542399763

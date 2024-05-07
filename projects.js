@@ -48,10 +48,15 @@ class RepositoryProjectsManager {
     // https://github.blog/changelog/label/deprecation/
     this.#organization = await this.#apiWrapper.fetchOrganiztion({ ownerName: this.#ownerName });
 
+    await this.#initRepositoryAndProjectsWithRetry();
+  }
+
+  async #initRepositoryAndProjectsWithRetry() {
     this.#repository = await this.#apiWrapper.fetchRepository({
       ownerName: this.#ownerName,
       repositoryName: this.#repositoryName,
     });
+
     this.#projects = this.#repository.projectsV2.nodes;
   }
 

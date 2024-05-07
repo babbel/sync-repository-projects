@@ -14,9 +14,15 @@ const GraphQlOctokit = Octokit.plugin(paginateGraphQL);
 // for token type installation, pass only the token
 const octokit = new GraphQlOctokit({ auth: process.env.GITHUB_TOKEN });
 
+const hasDuplicates = (array) => new Set(array).size !== array.length;
+
 try {
   const projectTitlesInput = core.getInput('project-titles');
   const titles = projectTitlesInput.split(/\s+/);
+
+  if (hasDuplicates(titles)) {
+    throw new Error(`Duplicate project titles are not allowed: ${titles}`);
+  }
 
   // Get the JSON webhook payload for the event that triggered the workflow
   const {

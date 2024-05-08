@@ -66,6 +66,9 @@ class RepositoryProjectsManager {
 
     this.#projects = this.#repository.projectsV2.nodes;
 
+    // eslint-disable-next-line no-console
+    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects, null, 2)}`);
+
     this.#titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
       .includes(title));
 
@@ -80,6 +83,9 @@ class RepositoryProjectsManager {
   }
 
   async #createMissingProjectsFrom() {
+    // eslint-disable-next-line no-console
+    console.log(`creating projects ${JSON.stringify(this.#titlesToCreate, null, 2)}`);
+
     for await (const title of this.#titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
       await this.#apiWrapper.createProject({
@@ -92,6 +98,9 @@ class RepositoryProjectsManager {
 
   async #deleteProjectsNotGivenBy(titles) {
     const projectsToDelete = this.#projects.filter((p) => !titles.includes(p.title));
+
+    // eslint-disable-next-line no-console
+    console.log(`deleting projects: ${JSON.stringify(projectsToDelete, null, 2)}`);
 
     for await (const project of projectsToDelete) {
       // more than 5 breaks API endpoint

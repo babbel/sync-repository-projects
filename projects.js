@@ -1,7 +1,10 @@
 import { setTimeout } from 'node:timers/promises';
 
-const FetchProjectMaxRuns = 3;
 const FetchProjectDelayMillies = 500;
+const FetchProjectMaxRuns = 4;
+
+// retry fetching projects when planning to create more than two projects
+const FetchProjectRetryLength = 2;
 
 class RepositoryProjectsManager {
   #apiWrapper;
@@ -58,7 +61,7 @@ class RepositoryProjectsManager {
     await this.#fetchProjects(tiles);
   }
 
-  async #fetchProjects(titles, run = 0) {
+  async #fetchProjects(titles, run = 1) {
     this.#repository = await this.#apiWrapper.fetchRepository({
       ownerName: this.#ownerName,
       repositoryName: this.#repositoryName,
@@ -72,9 +75,9 @@ class RepositoryProjectsManager {
     this.#titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
       .includes(title));
 
-    // sometimes the API does not return all projects.
+    // we suspect that in rare cases the API does not return all projects.
     // try fetching them again when there are suspiciously few projects.
-    if (run < FetchProjectMaxRuns && this.#titlesToCreate.length > 2) {
+    if (run < FetchProjectMaxRuns && this.#titlesToCreate.length > FetchProjectRetryLength) {
       await setTimeout(FetchProjectDelayMillies);
       return this.#fetchProjects(titles, run + 1);
     }

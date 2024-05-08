@@ -66,7 +66,6 @@ describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
 });
 
 describe('when the API initially returns suspiciously few projects', () => {
-
   describe('when the API then returns a sane number of projects on second retry', () => {
     let rpm;
 
@@ -176,7 +175,7 @@ describe('when the API initially returns suspiciously few projects', () => {
       rpm = new RepositoryProjectsManager({ apiWrapper, ownerName: 'acme', repositoryName: 'example-repository' });
     });
 
-    test('when four projects are missing', async () => {
+    test('all projects are present and creating a new project was not necessary', async () => {
       const titles = [
         'layer-200/module-1',
         'layer-100/module-2',
@@ -298,7 +297,7 @@ describe('when the API initially returns suspiciously few projects', () => {
       rpm = new RepositoryProjectsManager({ apiWrapper, ownerName: 'acme', repositoryName: 'example-repository' });
     });
 
-    test('when four projects are missing', async () => {
+    test('all projects are present and four of which were created new', async () => {
       const titles = [
         'layer-200/module-1',
         'layer-100/module-2',

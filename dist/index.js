@@ -30989,10 +30989,10 @@ class ApiWrapper {
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(2186);
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(5438);
-/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(8570);
-/* harmony import */ var _octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(4816);
-/* harmony import */ var _apiwrapper_js__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(7660);
-/* harmony import */ var _projects_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(2621);
+/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(8570);
+/* harmony import */ var _octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(4816);
+/* harmony import */ var _apiwrapper_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(7660);
+/* harmony import */ var _projects_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(4439);
 
 
 
@@ -31002,7 +31002,7 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
  // eslint-disable-line import/extensions
  // eslint-disable-line import/extensions
 
-const GraphQlOctokit = _octokit_core__WEBPACK_IMPORTED_MODULE_2__/* .Octokit.plugin */ .v.plugin(_octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_3__/* .paginateGraphQL */ .r);
+const GraphQlOctokit = _octokit_core__WEBPACK_IMPORTED_MODULE_3__/* .Octokit.plugin */ .v.plugin(_octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_4__/* .paginateGraphQL */ .r);
 
 // https://github.com/octokit/authentication-strategies.js
 // example: https://github.com/octokit/graphql.js/issues/61#issuecomment-542399763
@@ -31028,9 +31028,9 @@ try {
     },
   } = _actions_github__WEBPACK_IMPORTED_MODULE_1__;
 
-  const apiWrapper = new _apiwrapper_js__WEBPACK_IMPORTED_MODULE_4__/* .ApiWrapper */ .X({ octokit });
+  const apiWrapper = new _apiwrapper_js__WEBPACK_IMPORTED_MODULE_5__/* .ApiWrapper */ .X({ octokit });
 
-  const rpm = new _projects_js__WEBPACK_IMPORTED_MODULE_5__/* .RepositoryProjectsManager */ .n({
+  const rpm = new _projects_js__WEBPACK_IMPORTED_MODULE_2__/* .RepositoryProjectsManager */ .n({
     ownerName: repository.owner.login,
     repositoryName: repository.name,
     apiWrapper,
@@ -32322,12 +32322,26 @@ function paginateGraphQL(octokit) {
 
 /***/ }),
 
-/***/ 2621:
+/***/ 4439:
 /***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
 
-/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   "n": () => (/* binding */ RepositoryProjectsManager)
-/* harmony export */ });
+
+// EXPORTS
+__nccwpck_require__.d(__webpack_exports__, {
+  "n": () => (/* binding */ RepositoryProjectsManager)
+});
+
+;// CONCATENATED MODULE: external "node:timers/promises"
+const promises_namespaceObject = __WEBPACK_EXTERNAL_createRequire(import.meta.url)("node:timers/promises");
+;// CONCATENATED MODULE: ./projects.js
+
+
+const FetchProjectDelayMillies = 500;
+const FetchProjectMaxRuns = 4;
+
+// retry fetching projects when planning to create more than two projects
+const FetchProjectRetryLength = 2;
+
 class RepositoryProjectsManager {
   #apiWrapper;
 
@@ -32343,6 +32357,8 @@ class RepositoryProjectsManager {
 
   #repositoryName;
 
+  #titlesToCreate;
+
   constructor({ apiWrapper, ownerName, repositoryName }) {
     this.#apiWrapper = apiWrapper;
     this.#ownerName = ownerName;
@@ -32355,9 +32371,9 @@ class RepositoryProjectsManager {
   }
 
   async sync(titles) {
-    await this.#init();
+    await this.#init(titles);
 
-    await this.#createMissingProjectsFrom(titles);
+    await this.#createMissingProjectsFrom();
     await this.#deleteProjectsNotGivenBy(titles);
 
     // refersh local
@@ -32372,24 +32388,44 @@ class RepositoryProjectsManager {
     return this.#projects;
   }
 
-  async #init() {
+  async #init(tiles) {
     // the GitHub Action's event can contain the "old" GraphQL node id.
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
     this.#organization = await this.#apiWrapper.fetchOrganiztion({ ownerName: this.#ownerName });
 
+    await this.#fetchProjects(tiles);
+  }
+
+  async #fetchProjects(titles, run = 1) {
     this.#repository = await this.#apiWrapper.fetchRepository({
       ownerName: this.#ownerName,
       repositoryName: this.#repositoryName,
     });
-    this.#projects = this.#repository.projectsV2.nodes;
-  }
 
-  async #createMissingProjectsFrom(titles) {
-    const titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
+    this.#projects = this.#repository.projectsV2.nodes;
+
+    // eslint-disable-next-line no-console
+    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects, null, 2)}`);
+
+    this.#titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
       .includes(title));
 
-    for await (const title of titlesToCreate) {
+    // we suspect that in rare cases the API does not return all projects.
+    // try fetching them again when there are suspiciously few projects.
+    if (run < FetchProjectMaxRuns && this.#titlesToCreate.length > FetchProjectRetryLength) {
+      await (0,promises_namespaceObject.setTimeout)(FetchProjectDelayMillies);
+      return this.#fetchProjects(titles, run + 1);
+    }
+
+    return this.#projects;
+  }
+
+  async #createMissingProjectsFrom() {
+    // eslint-disable-next-line no-console
+    console.log(`creating projects ${JSON.stringify(this.#titlesToCreate, null, 2)}`);
+
+    for await (const title of this.#titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
       await this.#apiWrapper.createProject({
         title,
@@ -32401,6 +32437,9 @@ class RepositoryProjectsManager {
 
   async #deleteProjectsNotGivenBy(titles) {
     const projectsToDelete = this.#projects.filter((p) => !titles.includes(p.title));
+
+    // eslint-disable-next-line no-console
+    console.log(`deleting projects: ${JSON.stringify(projectsToDelete, null, 2)}`);
 
     for await (const project of projectsToDelete) {
       // more than 5 breaks API endpoint

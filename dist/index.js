@@ -32178,7 +32178,7 @@ function findPaginatedResourcePath(responseData) {
     responseData,
     "pageInfo"
   );
-  if (paginatedResourcePath.length === 0) {
+  if (paginatedResourcePath === null || paginatedResourcePath.length === 0) {
     throw new MissingPageInfo(responseData);
   }
   return paginatedResourcePath;
@@ -32241,8 +32241,7 @@ var createIterator = (octokit) => {
     return {
       [Symbol.asyncIterator]: () => ({
         async next() {
-          if (!nextPageExists)
-            return { done: true, value: {} };
+          if (!nextPageExists) return { done: true, value: {} };
           const response = await octokit.graphql(
             query,
             parameters

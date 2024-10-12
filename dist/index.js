@@ -32908,7 +32908,7 @@ function findPaginatedResourcePath(responseData) {
     responseData,
     "pageInfo"
   );
-  if (paginatedResourcePath === null || paginatedResourcePath.length === 0) {
+  if (paginatedResourcePath.length === 0) {
     throw new MissingPageInfo(responseData);
   }
   return paginatedResourcePath;
@@ -32917,10 +32917,10 @@ var deepFindPathToProperty = (object, searchProp, path = []) => {
   for (const key of Object.keys(object)) {
     const currentPath = [...path, key];
     const currentValue = object[key];
-    if (currentValue.hasOwnProperty(searchProp)) {
-      return currentPath;
-    }
     if (isObject(currentValue)) {
+      if (currentValue.hasOwnProperty(searchProp)) {
+        return currentPath;
+      }
       const result = deepFindPathToProperty(
         currentValue,
         searchProp,

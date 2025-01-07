@@ -14,6 +14,3 @@ name = "secrets"
 
 [[analyzers]]
 name = "test-coverage"
-
-[[transformers]]
-name = "prettier"

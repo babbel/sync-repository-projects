@@ -1,11 +1,11 @@
-import core from '@actions/core';
-import github from '@actions/github';
+import core from "@actions/core";
+import github from "@actions/github";
 
-import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
-import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
+import { Octokit } from "@octokit/core"; // eslint-disable-line import/no-extraneous-dependencies
+import { paginateGraphQL } from "@octokit/plugin-paginate-graphql";
 
-import { ApiWrapper } from './apiwrapper.js'; // eslint-disable-line import/extensions
-import { RepositoryProjectsManager } from './projects.js'; // eslint-disable-line import/extensions
+import { ApiWrapper } from "./apiwrapper.js"; // eslint-disable-line import/extensions
+import { RepositoryProjectsManager } from "./projects.js"; // eslint-disable-line import/extensions
 
 const GraphQlOctokit = Octokit.plugin(paginateGraphQL);
 
@@ -17,7 +17,7 @@ const octokit = new GraphQlOctokit({ auth: process.env.GITHUB_TOKEN });
 const hasDuplicates = (array) => new Set(array).size !== array.length;
 
 try {
-  const projectTitlesInput = core.getInput('project-titles');
+  const projectTitlesInput = core.getInput("project-titles");
   const titles = projectTitlesInput.split(/\s+/);
 
   if (hasDuplicates(titles)) {
@@ -27,9 +27,7 @@ try {
   // Get the JSON webhook payload for the event that triggered the workflow
   const {
     context: {
-      payload: {
-        repository,
-      },
+      payload: { repository },
     },
   } = github;
 
@@ -43,7 +41,13 @@ try {
 
   await rpm.sync(titles);
 
-  core.setOutput('project-titles', rpm.projects().map((p) => p.title).join(' '));
+  core.setOutput(
+    "project-titles",
+    rpm
+      .projects()
+      .map((p) => p.title)
+      .join(" "),
+  );
 } catch (error) {
   core.setFailed(error.message);
 }

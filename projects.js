@@ -1,4 +1,4 @@
-import { setTimeout } from 'node:timers/promises';
+import { setTimeout } from "node:timers/promises";
 
 const FetchProjectDelayMillies = 500;
 const FetchProjectMaxRuns = 4;
@@ -56,7 +56,9 @@ class RepositoryProjectsManager {
     // the GitHub Action's event can contain the "old" GraphQL node id.
     // this produces deprecation warnings. as a workaround, look up the "new" ID.
     // https://github.blog/changelog/label/deprecation/
-    this.#organization = await this.#apiWrapper.fetchOrganiztion({ ownerName: this.#ownerName });
+    this.#organization = await this.#apiWrapper.fetchOrganiztion({
+      ownerName: this.#ownerName,
+    });
 
     await this.#fetchProjects(tiles);
   }
@@ -70,14 +72,20 @@ class RepositoryProjectsManager {
     this.#projects = this.#repository.projectsV2.nodes;
 
     // eslint-disable-next-line no-console
-    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects, null, 2)}`);
+    console.log(
+      `fetched projects, run ${run}: ${JSON.stringify(this.#projects, null, 2)}`,
+    );
 
-    this.#titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
-      .includes(title));
+    this.#titlesToCreate = titles.filter(
+      (title) => !this.#projects.map((p) => p.title).includes(title),
+    );
 
     // we suspect that in rare cases the API does not return all projects.
     // try fetching them again when there are suspiciously few projects.
-    if (run < FetchProjectMaxRuns && this.#titlesToCreate.length > FetchProjectRetryLength) {
+    if (
+      run < FetchProjectMaxRuns &&
+      this.#titlesToCreate.length > FetchProjectRetryLength
+    ) {
       await setTimeout(FetchProjectDelayMillies);
       return this.#fetchProjects(titles, run + 1);
     }
@@ -87,7 +95,9 @@ class RepositoryProjectsManager {
 
   async #createMissingProjectsFrom() {
     // eslint-disable-next-line no-console
-    console.log(`creating projects ${JSON.stringify(this.#titlesToCreate, null, 2)}`);
+    console.log(
+      `creating projects ${JSON.stringify(this.#titlesToCreate, null, 2)}`,
+    );
 
     for await (const title of this.#titlesToCreate) {
       // call synchronously because more than 5 async requests break API endpoint
@@ -100,10 +110,14 @@ class RepositoryProjectsManager {
   }
 
   async #deleteProjectsNotGivenBy(titles) {
-    const projectsToDelete = this.#projects.filter((p) => !titles.includes(p.title));
+    const projectsToDelete = this.#projects.filter(
+      (p) => !titles.includes(p.title),
+    );
 
     // eslint-disable-next-line no-console
-    console.log(`deleting projects: ${JSON.stringify(projectsToDelete, null, 2)}`);
+    console.log(
+      `deleting projects: ${JSON.stringify(projectsToDelete, null, 2)}`,
+    );
 
     for await (const project of projectsToDelete) {
       // more than 5 breaks API endpoint

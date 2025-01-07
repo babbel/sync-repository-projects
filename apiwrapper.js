@@ -6,7 +6,11 @@ class ApiWrapper {
   }
 
   async createProject({ title, organization, repository }) {
-    const { createProjectV2: { projectV2: { id } } } = await this.#octokit.graphql(`
+    const {
+      createProjectV2: {
+        projectV2: { id },
+      },
+    } = await this.#octokit.graphql(`
       mutation createProject {
         createProjectV2(
           input: {
@@ -35,7 +39,7 @@ class ApiWrapper {
       }`,
       {
         headers: {
-          'X-Github-Next-Global-ID': '1',
+          "X-Github-Next-Global-ID": "1",
         },
       },
     );

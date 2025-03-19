@@ -13,6 +13,3 @@ name = "javascript"
 
 [[analyzers]]
 name = "secrets"
-
-[[analyzers]]
-name = "test-coverage"

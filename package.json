@@ -32,7 +32,7 @@
     "eslint-plugin-import": "*",
     "msw": "^2.11.1",
     "jest": "^30.2.0",
-    "ts-jest": "^29.4.0"
+    "ts-jest": "^29.4.4"
   },
   "author": "Babbel",
   "license": "MIT",

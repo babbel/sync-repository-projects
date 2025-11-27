@@ -3,6 +3,10 @@ version: 2
 updates:
 - package-ecosystem: npm
   directory: /
+  labels:
+    - "dependencies"
+    - "javascript"
+    - "team:infra"
   schedule:
     interval: weekly
     day: saturday
@@ -10,6 +14,10 @@ updates:
     timezone: Europe/Berlin
 - package-ecosystem: github-actions
   directory: /
+  labels:
+    - "dependencies"
+    - "github_actions"
+    - "team:infra"
   schedule:
     interval: weekly
     day: saturday

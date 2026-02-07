@@ -30,7 +30,7 @@
     "eslint": "*",
     "eslint-config-airbnb-base": "*",
     "eslint-plugin-import": "*",
-    "msw": "^2.12.7",
+    "msw": "^2.12.9",
     "jest": "^30.2.0",
     "ts-jest": "^29.4.6"
   },

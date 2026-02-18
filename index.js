@@ -1,5 +1,5 @@
 import { getInput, setFailed, setOutput } from '@actions/core';
-import github from '@actions/github';
+import { context } from '@actions/github';
 
 import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
 import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
@@ -26,12 +26,10 @@ try {
 
   // Get the JSON webhook payload for the event that triggered the workflow
   const {
-    context: {
-      payload: {
-        repository,
-      },
+    payload: {
+      repository,
     },
-  } = github;
+  } = context;
 
   const apiWrapper = new ApiWrapper({ octokit });
 

@@ -1,4 +1,4 @@
-import core from '@actions/core';
+import { getInput, setFailed, setOutput } from '@actions/core';
 import github from '@actions/github';
 
 import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
@@ -17,7 +17,7 @@ const octokit = new GraphQlOctokit({ auth: process.env.GITHUB_TOKEN });
 const hasDuplicates = (array) => new Set(array).size !== array.length;
 
 try {
-  const projectTitlesInput = core.getInput('project-titles');
+  const projectTitlesInput = getInput('project-titles');
   const titles = projectTitlesInput.split(/\s+/);
 
   if (hasDuplicates(titles)) {
@@ -43,7 +43,7 @@ try {
 
   await rpm.sync(titles);
 
-  core.setOutput('project-titles', rpm.projects().map((p) => p.title).join(' '));
+  setOutput('project-titles', rpm.projects().map((p) => p.title).join(' '));
 } catch (error) {
-  core.setFailed(error.message);
+  setFailed(error.message);
 }

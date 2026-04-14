@@ -1,7 +1,7 @@
-import { jest } from '@jest/globals'; // eslint-disable-line import/no-extraneous-dependencies
+import { jest } from '@jest/globals';  
 
 import { ApiWrapper } from '../apiwrapper';
-import { RepositoryProjectsManager } from '../projects.js'; // eslint-disable-line import/extensions
+import { RepositoryProjectsManager } from '../projects.js';  
 
 describe('RepositoryProjectsManager.sync() posts requests to the API', () => {
   let rpm;

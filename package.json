@@ -26,12 +26,14 @@
     "@octokit/plugin-paginate-graphql": "*"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
     "@vercel/ncc": "*",
-    "eslint": "*",
-    "eslint-config-airbnb-base": "*",
-    "eslint-plugin-import": "*",
-    "msw": "^2.13.3",
+    "eslint": "^10.2.0",
+    "eslint-plugin-import-x": "^4.16.2",
+    "globals": "^17.5.0",
     "jest": "^30.3.0",
+    "msw": "^2.13.3",
     "ts-jest": "^29.4.9"
   },
   "author": "Babbel",

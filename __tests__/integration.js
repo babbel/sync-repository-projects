@@ -1,11 +1,11 @@
-import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
+import { Octokit } from '@octokit/core';  
 import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
 
 import { graphql, HttpResponse } from 'msw'; // https://mswjs.io/docs/getting-started/mocks/graphql-api
 import { setupServer } from 'msw/node'; // https://mswjs.io/docs/getting-started/integrate/node
 
 import { ApiWrapper } from '../apiwrapper';
-import { RepositoryProjectsManager } from '../projects.js'; // eslint-disable-line import/extensions
+import { RepositoryProjectsManager } from '../projects.js';  
 
 const GraphQlOctokit = Octokit.plugin(paginateGraphQL);
 const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use default GITHUB_TOKEN token from env

@@ -1,11 +1,11 @@
 import { getInput, setFailed, setOutput } from '@actions/core';
 import { context } from '@actions/github';
 
-import { Octokit } from '@octokit/core'; // eslint-disable-line import/no-extraneous-dependencies
+import { Octokit } from '@octokit/core';  
 import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
 
-import { ApiWrapper } from './apiwrapper.js'; // eslint-disable-line import/extensions
-import { RepositoryProjectsManager } from './projects.js'; // eslint-disable-line import/extensions
+import { ApiWrapper } from './apiwrapper.js';  
+import { RepositoryProjectsManager } from './projects.js';  
 
 const GraphQlOctokit = Octokit.plugin(paginateGraphQL);
 

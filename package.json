@@ -33,7 +33,7 @@
     "eslint-plugin-import-x": "^4.16.2",
     "globals": "^17.5.0",
     "jest": "^30.3.0",
-    "msw": "^2.13.6",
+    "msw": "^2.14.2",
     "ts-jest": "^29.4.9"
   },
   "author": "Babbel",

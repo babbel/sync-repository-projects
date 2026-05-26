@@ -34,7 +34,7 @@
     "globals": "^17.6.0",
     "jest": "^30.4.2",
     "msw": "^2.14.6",
-    "ts-jest": "^29.4.9"
+    "ts-jest": "^29.4.11"
   },
   "author": "Babbel",
   "license": "MIT",

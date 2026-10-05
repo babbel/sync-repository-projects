@@ -1,7 +1,8 @@
 import { Octokit } from '@octokit/core';  
 import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
 
-import { graphql, HttpResponse } from 'msw'; // https://mswjs.io/docs/getting-started/mocks/graphql-api
+import { HttpResponse } from 'msw';
+import { graphql } from 'msw/graphql'; // https://mswjs.io/docs/network-behavior/graphql
 import { setupServer } from 'msw/node'; // https://mswjs.io/docs/getting-started/integrate/node
 
 import { ApiWrapper } from '../apiwrapper';
@@ -14,6 +15,8 @@ const apiWrapper = new ApiWrapper({ octokit });
 
 const rpm = new RepositoryProjectsManager({ apiWrapper, ownerName: 'acme', repositoryName: 'example-repository' });
 
+const github = graphql.link('https://api.github.com/graphql'); // https://mswjs.io/docs/api/graphql#graphqllinkurl
+
 const server = setupServer(); // MSW mock server
 
 describe('RepositoryProjectsManager integration test', () => {
@@ -23,7 +26,7 @@ describe('RepositoryProjectsManager integration test', () => {
 
   beforeEach(() => {
     server.use(
-      graphql.query(/fetchOrgainzation/, () => HttpResponse.json({
+      github.query(/fetchOrgainzation/, () => HttpResponse.json({
         data: {
           organization: {
             id: 'O_0000000001',
@@ -31,7 +34,7 @@ describe('RepositoryProjectsManager integration test', () => {
           },
         },
       })),
-      graphql.query(/paginate/, () => HttpResponse.json({
+      github.query(/paginate/, () => HttpResponse.json({
         data: {
           repository: {
             name: 'example-repository',
@@ -55,7 +58,7 @@ describe('RepositoryProjectsManager integration test', () => {
           },
         },
       })),
-      graphql.query(/paginate/, () => HttpResponse.json({
+      github.query(/paginate/, () => HttpResponse.json({
         data: {
           repository: {
             name: 'example-repository',

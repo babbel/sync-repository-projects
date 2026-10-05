@@ -1,7 +1,8 @@
 import { Octokit } from '@octokit/core';  
 import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
 
-import { graphql, HttpResponse } from 'msw'; // https://mswjs.io/docs/getting-started/mocks/graphql-api
+import { HttpResponse } from 'msw';
+import { graphql } from 'msw/graphql'; // https://mswjs.io/docs/network-behavior/graphql
 import { setupServer } from 'msw/node'; // https://mswjs.io/docs/getting-started/integrate/node
 
 import { ApiWrapper } from '../apiwrapper';
@@ -11,11 +12,13 @@ const octokit = new GraphQlOctokit({ auth: 'fake-token-value' }); // don't use d
 
 const apiWrapper = new ApiWrapper({ octokit });
 
+const github = graphql.link('https://api.github.com/graphql'); // https://mswjs.io/docs/api/graphql#graphqllinkurl
+
 const server = setupServer(); // https://mswjs.io/docs/api/setup-server/
 const mock = ({ action, matcher, data }) => {
   const actions = {
-    mutation: graphql.mutation,
-    query: graphql.query,
+    mutation: github.mutation,
+    query: github.query,
   };
 
   server.use(

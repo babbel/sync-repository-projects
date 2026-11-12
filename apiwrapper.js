@@ -55,6 +55,17 @@ class ApiWrapper {
             nodes {
               id
               title
+              field(name: "Status") {
+                ... on ProjectV2SingleSelectField {
+                  id
+                  options {
+                    id
+                    name
+                    color
+                    description
+                  }
+                }
+              }
             }
             pageInfo {
               hasNextPage
@@ -64,6 +75,38 @@ class ApiWrapper {
         }
       }`);
     return response.repository;
+  }
+
+  async addStatusOptions({ field, options }) {
+    const existing = field.options.map(({
+      id, name, color, description,
+    }) => ({
+      id, name, color, description,
+    }));
+    const added = options.map(({ name, color }) => ({ name, color, description: '' }));
+
+    const { updateProjectV2Field: { projectV2Field } } = await this.#octokit.graphql(
+      `
+      mutation addStatusOptions($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
+        updateProjectV2Field(input: { fieldId: $fieldId, singleSelectOptions: $options }) {
+          projectV2Field {
+            ... on ProjectV2SingleSelectField {
+              id
+              options {
+                id
+                name
+              }
+            }
+          }
+        }
+      }`,
+      {
+        fieldId: field.id,
+        options: [...existing.slice(0, 1), ...added, ...existing.slice(1)],
+      },
+    );
+
+    return projectV2Field;
   }
 
   async deleteProject({ project, clientMutationId }) {

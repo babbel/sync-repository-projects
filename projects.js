@@ -34,7 +34,7 @@ class RepositoryProjectsManager {
     this.#clientMutationId = `sync-repository-projects-${this.#ownerName}-${this.#repositoryName}`;
   }
 
-  async sync(titles) {
+  async sync(titles, statusOptions = []) {
     await this.#init(titles);
 
     await this.#createMissingProjectsFrom();
@@ -46,6 +46,8 @@ class RepositoryProjectsManager {
       repositoryName: this.#repositoryName,
     });
     this.#projects = this.#repository.projectsV2.nodes;
+
+    await this.#addMissingStatusOptions(statusOptions);
   }
 
   projects() {
@@ -96,6 +98,20 @@ class RepositoryProjectsManager {
         organization: this.#organization,
         repository: this.#repository,
       });
+    }
+  }
+
+  async #addMissingStatusOptions(statusOptions) {
+    for await (const project of this.#projects) {
+      const missing = statusOptions.filter(
+        (option) => project.field && !project.field.options.some((o) => o.name === option.name),
+      );
+
+      if (missing.length > 0) {
+        console.log(`adding status options ${missing.map((o) => o.name).join(', ')} to project ${project.title}`);
+
+        await this.#apiWrapper.addStatusOptions({ field: project.field, options: missing });
+      }
     }
   }
 

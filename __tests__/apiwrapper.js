@@ -110,6 +110,44 @@ describe('ApiWrapper', () => {
     });
   });
 
+  describe('.addStatusOptions()', () => {
+    let variables;
+
+    beforeEach(() => {
+      server.use(
+        github.mutation(/addStatusOptions/, ({ variables: requestVariables }) => {
+          variables = requestVariables;
+          return HttpResponse.json({ data: { updateProjectV2Field: { projectV2Field: { id: 'F1' } } } });
+        }),
+      );
+    });
+
+    const field = {
+      id: 'F1',
+      options: [
+        {
+          id: 'o1', name: 'Todo', color: 'GREEN', description: 'Not started',
+        },
+        {
+          id: 'o2', name: 'In Progress', color: 'YELLOW', description: '',
+        },
+      ],
+    };
+
+    test('keeps the existing options and adds the new ones after the first', async () => {
+      await apiWrapper.addStatusOptions({ field, options: [{ name: 'Blocked', color: 'RED' }] });
+
+      expect(variables).toEqual({
+        fieldId: 'F1',
+        options: [
+          field.options[0],
+          { name: 'Blocked', color: 'RED', description: '' },
+          field.options[1],
+        ],
+      });
+    });
+  });
+
   describe('.deleteProject()', () => {
     const data = { projectId: 'PVT_000000000000001' };
 

@@ -111,7 +111,7 @@ describe('ApiWrapper', () => {
   });
 
   describe('.addStatusOptions()', () => {
-    let variables;
+    let variables = null;
 
     beforeEach(() => {
       server.use(

@@ -11,8 +11,8 @@ const statusField = (id, names) => ({
 });
 
 describe('RepositoryProjectsManager.sync() with status options', () => {
-  let apiWrapper;
-  let rpm;
+  let apiWrapper = null;
+  let rpm = null;
 
   const repository = {
     name: 'example-repository',

@@ -5,7 +5,8 @@ import { Octokit } from '@octokit/core';
 import { paginateGraphQL } from '@octokit/plugin-paginate-graphql';
 
 import { ApiWrapper } from './apiwrapper.js';  
-import { RepositoryProjectsManager } from './projects.js';  
+import { RepositoryProjectsManager } from './projects.js';
+import { parseStatusOptions } from './status-options.js';  
 
 const GraphQlOctokit = Octokit.plugin(paginateGraphQL);
 
@@ -19,6 +20,7 @@ const hasDuplicates = (array) => new Set(array).size !== array.length;
 try {
   const projectTitlesInput = getInput('project-titles');
   const titles = projectTitlesInput.split(/\s+/);
+  const statusOptions = parseStatusOptions(getInput('status-options'));
 
   if (hasDuplicates(titles)) {
     throw new Error(`Duplicate project titles are not allowed: ${titles}`);
@@ -39,7 +41,7 @@ try {
     apiWrapper,
   });
 
-  await rpm.sync(titles);
+  await rpm.sync(titles, statusOptions);
 
   setOutput('project-titles', rpm.projects().map((p) => p.title).join(' '));
 } catch (error) {

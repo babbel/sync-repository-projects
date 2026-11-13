@@ -29484,6 +29484,17 @@ class ApiWrapper {
             nodes {
               id
               title
+              field(name: "Status") {
+                ... on ProjectV2SingleSelectField {
+                  id
+                  options {
+                    id
+                    name
+                    color
+                    description
+                  }
+                }
+              }
             }
             pageInfo {
               hasNextPage
@@ -29493,6 +29504,38 @@ class ApiWrapper {
         }
       }`);
     return response.repository;
+  }
+
+  async addStatusOptions({ field, options }) {
+    const existing = field.options.map(({
+      id, name, color, description,
+    }) => ({
+      id, name, color, description,
+    }));
+    const added = options.map(({ name, color }) => ({ name, color, description: '' }));
+
+    const { updateProjectV2Field: { projectV2Field } } = await this.#octokit.graphql(
+      `
+      mutation addStatusOptions($fieldId: ID!, $options: [ProjectV2SingleSelectFieldOptionInput!]!) {
+        updateProjectV2Field(input: { fieldId: $fieldId, singleSelectOptions: $options }) {
+          projectV2Field {
+            ... on ProjectV2SingleSelectField {
+              id
+              options {
+                id
+                name
+              }
+            }
+          }
+        }
+      }`,
+      {
+        fieldId: field.id,
+        options: [...existing.slice(0, 1), ...added, ...existing.slice(1)],
+      },
+    );
+
+    return projectV2Field;
   }
 
   async deleteProject({ project, clientMutationId }) {
@@ -29527,8 +29570,9 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(6420);
 /* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(5194);
 /* harmony import */ var _octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(3178);
-/* harmony import */ var _apiwrapper_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4248);
+/* harmony import */ var _apiwrapper_js__WEBPACK_IMPORTED_MODULE_6__ = __nccwpck_require__(4248);
 /* harmony import */ var _projects_js__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3534);
+/* harmony import */ var _status_options_js__WEBPACK_IMPORTED_MODULE_5__ = __nccwpck_require__(4006);
 
 
 
@@ -29536,6 +29580,7 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 
 
   
+
   
 
 const GraphQlOctokit = _octokit_core__WEBPACK_IMPORTED_MODULE_3__/* .Octokit */ .E.plugin(_octokit_plugin_paginate_graphql__WEBPACK_IMPORTED_MODULE_4__/* .paginateGraphQL */ .T);
@@ -29550,6 +29595,7 @@ const hasDuplicates = (array) => new Set(array).size !== array.length;
 try {
   const projectTitlesInput = (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__/* .getInput */ .V4)('project-titles');
   const titles = projectTitlesInput.split(/\s+/);
+  const statusOptions = (0,_status_options_js__WEBPACK_IMPORTED_MODULE_5__/* .parseStatusOptions */ .s)((0,_actions_core__WEBPACK_IMPORTED_MODULE_0__/* .getInput */ .V4)('status-options'));
 
   if (hasDuplicates(titles)) {
     throw new Error(`Duplicate project titles are not allowed: ${titles}`);
@@ -29562,7 +29608,7 @@ try {
     },
   } = _actions_github__WEBPACK_IMPORTED_MODULE_1__/* .context */ ._;
 
-  const apiWrapper = new _apiwrapper_js__WEBPACK_IMPORTED_MODULE_5__/* .ApiWrapper */ .q({ octokit });
+  const apiWrapper = new _apiwrapper_js__WEBPACK_IMPORTED_MODULE_6__/* .ApiWrapper */ .q({ octokit });
 
   const rpm = new _projects_js__WEBPACK_IMPORTED_MODULE_2__/* .RepositoryProjectsManager */ .S({
     ownerName: repository.owner.login,
@@ -29570,7 +29616,7 @@ try {
     apiWrapper,
   });
 
-  await rpm.sync(titles);
+  await rpm.sync(titles, statusOptions);
 
   (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__/* .setOutput */ .uH)('project-titles', rpm.projects().map((p) => p.title).join(' '));
 } catch (error) {
@@ -37812,7 +37858,7 @@ class RepositoryProjectsManager {
     this.#clientMutationId = `sync-repository-projects-${this.#ownerName}-${this.#repositoryName}`;
   }
 
-  async sync(titles) {
+  async sync(titles, statusOptions = []) {
     await this.#init(titles);
 
     await this.#createMissingProjectsFrom();
@@ -37824,6 +37870,8 @@ class RepositoryProjectsManager {
       repositoryName: this.#repositoryName,
     });
     this.#projects = this.#repository.projectsV2.nodes;
+
+    await this.#addMissingStatusOptions(statusOptions);
   }
 
   projects() {
@@ -37848,7 +37896,7 @@ class RepositoryProjectsManager {
     this.#projects = this.#repository.projectsV2.nodes;
 
      
-    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects, null, 2)}`);
+    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects.map(({ id, title }) => ({ id, title })), null, 2)}`);
 
     this.#titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
       .includes(title));
@@ -37877,6 +37925,20 @@ class RepositoryProjectsManager {
     }
   }
 
+  async #addMissingStatusOptions(statusOptions) {
+    for await (const project of this.#projects) {
+      const missing = statusOptions.filter(
+        (option) => project.field && !project.field.options.some((o) => o.name === option.name),
+      );
+
+      if (missing.length > 0) {
+        console.log(`adding status options ${missing.map((o) => o.name).join(', ')} to project ${project.title}`);
+
+        await this.#apiWrapper.addStatusOptions({ field: project.field, options: missing });
+      }
+    }
+  }
+
   async #deleteProjectsNotGivenBy(titles) {
     const projectsToDelete = this.#projects.filter((p) => !titles.includes(p.title));
 
@@ -37894,6 +37956,41 @@ class RepositoryProjectsManager {
 }
 
   
+
+
+/***/ }),
+
+/***/ 4006:
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __nccwpck_require__) => {
+
+/* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
+/* harmony export */   s: () => (/* binding */ parseStatusOptions)
+/* harmony export */ });
+const DefaultColor = 'GRAY';
+const Colors = ['GRAY', 'BLUE', 'GREEN', 'YELLOW', 'ORANGE', 'RED', 'PINK', 'PURPLE'];
+
+const parseStatusOption = (line) => {
+  const separator = line.lastIndexOf(':');
+  const name = (separator === -1 ? line : line.slice(0, separator)).trim();
+  const color = (separator === -1 ? DefaultColor : line.slice(separator + 1).trim()).toUpperCase();
+
+  if (name === '') {
+    throw new Error(`status option "${line}" has no name`);
+  }
+  if (!Colors.includes(color)) {
+    throw new Error(`status option "${line}" has an invalid color, use one of ${Colors.join(', ')}`);
+  }
+
+  return { name, color };
+};
+
+const parseStatusOptions = (input) => input
+  .split('\n')
+  .map((line) => line.trim())
+  .filter((line) => line !== '')
+  .map(parseStatusOption);
+
+
 
 
 /***/ })

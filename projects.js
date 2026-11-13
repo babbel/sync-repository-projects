@@ -72,7 +72,7 @@ class RepositoryProjectsManager {
     this.#projects = this.#repository.projectsV2.nodes;
 
      
-    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects, null, 2)}`);
+    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects.map(({ id, title }) => ({ id, title })), null, 2)}`);
 
     this.#titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
       .includes(title));

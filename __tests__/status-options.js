@@ -11,4 +11,16 @@ describe('parseStatusOptions()', () => {
       { name: 'On Hold', color: 'GRAY' },
     ]);
   });
+
+  test('rejects an invalid color', () => {
+    expect(() => parseStatusOptions('Blocked:rd')).toThrow('invalid color');
+  });
+
+  test('rejects an empty color', () => {
+    expect(() => parseStatusOptions('Blocked:')).toThrow('invalid color');
+  });
+
+  test('rejects an option without a name', () => {
+    expect(() => parseStatusOptions(':RED')).toThrow('has no name');
+  });
 });

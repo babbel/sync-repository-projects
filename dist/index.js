@@ -37896,7 +37896,7 @@ class RepositoryProjectsManager {
     this.#projects = this.#repository.projectsV2.nodes;
 
      
-    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects, null, 2)}`);
+    console.log(`fetched projects, run ${run}: ${JSON.stringify(this.#projects.map(({ id, title }) => ({ id, title })), null, 2)}`);
 
     this.#titlesToCreate = titles.filter((title) => !this.#projects.map((p) => p.title)
       .includes(title));
@@ -37967,16 +37967,28 @@ class RepositoryProjectsManager {
 /* harmony export */   s: () => (/* binding */ parseStatusOptions)
 /* harmony export */ });
 const DefaultColor = 'GRAY';
+const Colors = ['GRAY', 'BLUE', 'GREEN', 'YELLOW', 'ORANGE', 'RED', 'PINK', 'PURPLE'];
+
+const parseStatusOption = (line) => {
+  const separator = line.lastIndexOf(':');
+  const name = (separator === -1 ? line : line.slice(0, separator)).trim();
+  const color = (separator === -1 ? DefaultColor : line.slice(separator + 1).trim()).toUpperCase();
+
+  if (name === '') {
+    throw new Error(`status option "${line}" has no name`);
+  }
+  if (!Colors.includes(color)) {
+    throw new Error(`status option "${line}" has an invalid color, use one of ${Colors.join(', ')}`);
+  }
+
+  return { name, color };
+};
 
 const parseStatusOptions = (input) => input
   .split('\n')
   .map((line) => line.trim())
   .filter((line) => line !== '')
-  .map((line) => {
-    const [name, color = DefaultColor] = line.split(':').map((part) => part.trim());
-
-    return { name, color: color.toUpperCase() };
-  });
+  .map(parseStatusOption);
 
 
 

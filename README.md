@@ -23,7 +23,7 @@ Moreover, the GitHub token of a GitHub App installation is expected as environme
 | Name             | Description                                          | Type         | Required? |
 |------------------|------------------------------------------------------|--------------|-----------|
 | `project-titles` | Space-separated list of projects titles to be synced | `string`     | YES       |
-| `status-options` | Status options every synced project must have, one per line as `NAME` or `NAME:COLOR` (e.g. `Blocked:RED`). Missing options are added after the first existing option; existing options and the items' values are kept. Default: none | `string` | NO |
+| `status-options` | Status options every synced project must have, one per line as `NAME` or `NAME:COLOR` (e.g. `Blocked:RED`), `COLOR` being `GRAY` (default), `BLUE`, `GREEN`, `YELLOW`, `ORANGE`, `RED`, `PINK` or `PURPLE`; a `NAME` cannot contain `:`. Missing options are added after the first existing option; existing options and the items' values are kept. Default: none | `string` | NO |
 
 
 ## Outputs

@@ -4,6 +4,10 @@ inputs:
   project-titles:
     description: 'List of projets titles to be synced, separated by space'
     required: true
+  status-options:
+    description: 'Status options every synced project must have, one per line as NAME or NAME:COLOR (e.g. Blocked:RED), COLOR being GRAY (default), BLUE, GREEN, YELLOW, ORANGE, RED, PINK or PURPLE. Missing options are added after the first existing option.'
+    required: false
+    default: ''
 outputs:
   project-titles:
     description: 'List of titles of the projects existing in GitHub after syncing, as space separated string'
